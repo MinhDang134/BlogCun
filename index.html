@@ -46,7 +46,7 @@
                     </div>
                     <div class="avatar-decoration"></div>
                 </div>
-                <h1 data-translate="greeting">Xin chào! 👋</h1>
+                <h1 data-translate="greeting" id="greetingText">Xin chào! 👋</h1>
                 <h2 data-translate="intro">Mình là <span class="highlight">Cún</span></h2>
                 <p class="nickname" data-translate="nickname">(Hay còn được gọi là Cún cute 😊)</p>
             </div>
@@ -58,7 +58,7 @@
                 </div>
 
                 <div class="slogan">
-                    <p data-translate="slogan">"Hãy sống như một bông hoa, tỏa hương thơm ngát cho đời 🌸"</p>
+                    <p data-translate="slogan" id="sloganTyping">"Hãy sống như một bông hoa, tỏa hương thơm ngát cho đời 🌸"</p>
                 </div>
 
                 <div class="social-links">
@@ -223,6 +223,59 @@
 
                 dropdown.classList.remove('show');
                 localStorage.setItem('language', lang);
+
+                // Automation: Chào tự động theo thời gian trong ngày
+                function getGreeting() {
+                    const hour = new Date().getHours();
+                    if (hour >= 5 && hour < 12) return 'Chúc buổi sáng vui vẻ! ☀️';
+                    if (hour >= 12 && hour < 18) return 'Chúc buổi chiều ngọt ngào! 🍬';
+                    return 'Chúc buổi tối ấm áp! 🌙';
+                }
+                function getGreetingEN() {
+                    const hour = new Date().getHours();
+                    if (hour >= 5 && hour < 12) return 'Good morning! ☀️';
+                    if (hour >= 12 && hour < 18) return 'Have a sweet afternoon! 🍬';
+                    return 'Have a cozy evening! 🌙';
+                }
+                function getGreetingFR() {
+                    const hour = new Date().getHours();
+                    if (hour >= 5 && hour < 12) return 'Bonne matinée! ☀️';
+                    if (hour >= 12 && hour < 18) return 'Bel après-midi! 🍬';
+                    return 'Bonne soirée! 🌙';
+                }
+                function setAutoGreeting(lang) {
+                    const greetingText = document.getElementById('greetingText');
+                    if (lang === 'vi') greetingText.textContent = getGreeting();
+                    else if (lang === 'en') greetingText.textContent = getGreetingEN();
+                    else if (lang === 'fr') greetingText.textContent = getGreetingFR();
+                }
+                // Gọi khi load và khi đổi ngôn ngữ
+                setTimeout(() => {
+                    setAutoGreeting(lang);
+                }, 100);
+
+                // Automation: Hiệu ứng typing cho slogan
+                function typeSloganEffect(text) {
+                    const sloganEl = document.getElementById('sloganTyping');
+                    sloganEl.textContent = '';
+                    let i = 0;
+                    function type() {
+                        if (i < text.length) {
+                            sloganEl.textContent += text.charAt(i);
+                            i++;
+                            setTimeout(type, 32);
+                        }
+                    }
+                    type();
+                }
+                // Gọi khi load và khi đổi ngôn ngữ
+                setTimeout(() => {
+                    let slogan = '';
+                    if (lang === 'vi') slogan = '"Hãy sống như một bông hoa, tỏa hương thơm ngát cho đời 🌸"';
+                    else if (lang === 'en') slogan = '"Live like a flower, spreading sweet fragrance to life 🌸"';
+                    else slogan = '"Vivre comme une fleur, répandant un doux parfum dans la vie 🌸"';
+                    typeSloganEffect(slogan);
+                }, 400);
             });
         });
 
@@ -303,7 +356,7 @@
             if (loginUserInput.value === 'yeudangnhat' && loginPassInput.value === 'yeudangnhat') {
                 loginDialogOverlay.style.display = 'none';
                 setTimeout(() => {
-                    loginSuccessOverlay.style.display = 'flex';
+                    window.location.href = 'edit.html';
                 }, 300);
             } else {
                 loginDialogMessage.textContent = 'Sai tài khoản hoặc mật khẩu rồi 😢';

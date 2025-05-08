@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chỉnh sửa thông tin cá nhân</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="profile-card">
+            <button class="logout-btn" id="logoutBtn" title="Đăng xuất">⎋ Đăng xuất</button>
+            <div class="profile-header">
+                <div class="avatar-container">
+                    <div class="avatar">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Cun&backgroundColor=b6e3f4" alt="Avatar" id="avatarImg">
+                    </div>
+                    <div class="avatar-decoration"></div>
+                </div>
+                <input type="text" id="editName" class="edit-input main-name" value="Cún" />
+                <input type="text" id="editNickname" class="edit-input nickname" value="Cún cute 😊" />
+            </div>
+            <div class="profile-content">
+                <div class="about-me">
+                    <h3>Về mình ✨</h3>
+                    <textarea id="editAbout" class="edit-textarea">Mình là một người yêu thích công nghệ và sáng tạo. Mình thích khám phá những điều mới mẻ, đọc sách và nghe nhạc. Mình luôn cố gắng sống tích cực và lan tỏa năng lượng tốt đến mọi người xung quanh.</textarea>
+                </div>
+                <div class="slogan">
+                    <textarea id="editSlogan" class="edit-textarea">"Hãy sống như một bông hoa, tỏa hương thơm ngát cho đời 🌸"</textarea>
+                </div>
+                <div class="social-links">
+                    <h3>Kết nối với mình nhé! 💕</h3>
+                    <div class="social-icons">
+                        <a href="#" class="social-icon"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-icon phone-icon"><i class="fas fa-phone"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-tiktok"></i></a>
+                        <a href="#" class="social-icon locket-icon"><i class="fas fa-heart"></i></a>
+                    </div>
+                </div>
+                <button class="submit-pass-btn save-btn" id="saveProfileBtn">Lưu thông tin</button>
+                <div class="dialog-message" id="saveMessage"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Load data from localStorage if available
+        window.onload = function() {
+            const data = JSON.parse(localStorage.getItem('profileData') || '{}');
+            if (data.name) document.getElementById('editName').value = data.name;
+            if (data.nickname) document.getElementById('editNickname').value = data.nickname;
+            if (data.about) document.getElementById('editAbout').value = data.about;
+            if (data.slogan) document.getElementById('editSlogan').value = data.slogan;
+        };
+        document.getElementById('saveProfileBtn').onclick = function() {
+            const name = document.getElementById('editName').value;
+            const nickname = document.getElementById('editNickname').value;
+            const about = document.getElementById('editAbout').value;
+            const slogan = document.getElementById('editSlogan').value;
+            localStorage.setItem('profileData', JSON.stringify({name, nickname, about, slogan}));
+            document.getElementById('saveMessage').textContent = 'Đã lưu thông tin thành công! ✨';
+            setTimeout(() => {
+                document.getElementById('saveMessage').textContent = '';
+            }, 2000);
+        };
+        // Đăng xuất
+        document.getElementById('logoutBtn').onclick = function() {
+            window.location.href = 'index.html';
+        };
+    </script>
+</body>
+</html> 
