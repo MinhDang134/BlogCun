@@ -17,6 +17,26 @@
             </div>
         </label>
     </div>
+    <div class="language-switch-wrapper">
+        <button class="language-btn" id="languageBtn">
+            <i class="fas fa-globe"></i>
+            <span class="current-lang">VI</span>
+        </button>
+        <div class="language-dropdown">
+            <button class="lang-option" data-lang="vi">
+                <img src="https://flagcdn.com/w20/vn.png" alt="Vietnamese">
+                <span>Tiếng Việt</span>
+            </button>
+            <button class="lang-option" data-lang="en">
+                <img src="https://flagcdn.com/w20/gb.png" alt="English">
+                <span>English</span>
+            </button>
+            <button class="lang-option" data-lang="fr">
+                <img src="https://flagcdn.com/w20/fr.png" alt="Français">
+                <span>Français</span>
+            </button>
+        </div>
+    </div>
     <div class="container">
         <div class="profile-card">
             <div class="profile-header">
@@ -26,34 +46,98 @@
                     </div>
                     <div class="avatar-decoration"></div>
                 </div>
-                <h1>Xin chào! 👋</h1>
-                <h2>Mình là <span class="highlight">Cún</span></h2>
-                <p class="nickname">(Hay còn được gọi là Cún cute 😊)</p>
+                <h1 data-translate="greeting">Xin chào! 👋</h1>
+                <h2 data-translate="intro">Mình là <span class="highlight">Cún</span></h2>
+                <p class="nickname" data-translate="nickname">(Hay còn được gọi là Cún cute 😊)</p>
             </div>
 
             <div class="profile-content">
                 <div class="about-me">
-                    <h3>Về mình ✨</h3>
-                    <p>Mình là một người yêu thích công nghệ và sáng tạo. Mình thích khám phá những điều mới mẻ, đọc sách và nghe nhạc. Mình luôn cố gắng sống tích cực và lan tỏa năng lượng tốt đến mọi người xung quanh.</p>
+                    <h3 data-translate="about-title">Về mình ✨</h3>
+                    <p data-translate="about-content">Mình là một người yêu thích công nghệ và sáng tạo. Mình thích khám phá những điều mới mẻ, đọc sách và nghe nhạc. Mình luôn cố gắng sống tích cực và lan tỏa năng lượng tốt đến mọi người xung quanh.</p>
                 </div>
 
                 <div class="slogan">
-                    <p>"Hãy sống như một bông hoa, tỏa hương thơm ngát cho đời 🌸"</p>
+                    <p data-translate="slogan">"Hãy sống như một bông hoa, tỏa hương thơm ngát cho đời 🌸"</p>
                 </div>
 
                 <div class="social-links">
-                    <h3>Kết nối với mình nhé! 💕</h3>
+                    <h3 data-translate="connect">Kết nối với mình nhé! 💕</h3>
                     <div class="social-icons">
-                        <a href="#" class="social-icon"><i class="fab fa-facebook"></i></a>
-                        <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
-                        <a href="#" class="social-icon"><i class="fab fa-github"></i></a>
+                        <a href="#" class="social-icon" title="Facebook">
+                            <i class="fab fa-facebook"></i>
+                        </a>
+                        <a href="#" class="social-icon" title="Instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="social-icon phone-icon" title="Số điện thoại" id="showPhoneBtn">
+                            <i class="fas fa-phone"></i>
+                        </a>
+                        <a href="#" class="social-icon" title="TikTok">
+                            <i class="fab fa-tiktok"></i>
+                        </a>
+                        <a href="#" class="social-icon locket-icon" title="Locket">
+                            <i class="fas fa-heart"></i>
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    <!-- Cute Password Dialog -->
+    <div class="cute-dialog-overlay" id="cuteDialogOverlay" style="display:none;">
+        <div class="cute-dialog">
+            <span class="dialog-decor decor-heart">💖</span>
+            <span class="dialog-decor decor-star">✨</span>
+            <span class="dialog-decor decor-flower">🌸</span>
+            <button class="close-dialog" id="closeDialogBtn">×</button>
+            <h2>🔒 Nhập mật khẩu để xem số điện thoại</h2>
+            <input type="password" id="phonePassInput" placeholder="Nhập mật khẩu siêu cute..." />
+            <button class="submit-pass-btn" id="submitPassBtn">Xác nhận 💖</button>
+            <div class="dialog-message" id="dialogMessage"></div>
+        </div>
+    </div>
+    <!-- Cute Phone Reveal -->
+    <div class="cute-dialog-overlay" id="phoneRevealOverlay" style="display:none;">
+        <div class="cute-dialog phone-reveal">
+            <span class="dialog-decor decor-heart">💖</span>
+            <span class="dialog-decor decor-star">✨</span>
+            <span class="dialog-decor decor-flower">🌸</span>
+            <button class="close-dialog" id="closePhoneDialogBtn">×</button>
+            <h2>🎉 Số điện thoại của Cún nè!</h2>
+            <div class="phone-number" id="phoneNumber">0983161786</div>
+            <div class="phone-anim">💌📱💖</div>
+        </div>
+    </div>
+    <!-- Cute Flower Button -->
+    <button class="flower-fab" id="flowerFabBtn" title="Đăng nhập siêu cute">🌸</button>
+    <!-- Cute Login Dialog -->
+    <div class="cute-dialog-overlay" id="loginDialogOverlay" style="display:none;">
+        <div class="cute-dialog login-dialog">
+            <span class="dialog-decor decor-heart">💖</span>
+            <span class="dialog-decor decor-star">✨</span>
+            <span class="dialog-decor decor-flower">🌸</span>
+            <button class="close-dialog" id="closeLoginDialogBtn">×</button>
+            <h2>🌸 Đăng nhập siêu cute</h2>
+            <input type="text" id="loginUserInput" placeholder="Tên đăng nhập..." autocomplete="username" />
+            <input type="password" id="loginPassInput" placeholder="Mật khẩu..." autocomplete="current-password" />
+            <button class="submit-pass-btn" id="submitLoginBtn">Đăng nhập 💖</button>
+            <div class="dialog-message" id="loginDialogMessage"></div>
+        </div>
+    </div>
+    <!-- Cute Login Success Dialog -->
+    <div class="cute-dialog-overlay" id="loginSuccessOverlay" style="display:none;">
+        <div class="cute-dialog login-success">
+            <span class="dialog-decor decor-heart">💖</span>
+            <span class="dialog-decor decor-star">✨</span>
+            <span class="dialog-decor decor-flower">🌸</span>
+            <button class="close-dialog" id="closeLoginSuccessBtn">×</button>
+            <h2>Đăng nhập thành công!</h2>
+            <div class="phone-anim">🌸🥳💖</div>
+        </div>
+    </div>
     <script>
+        // Theme switcher
         const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
         const currentTheme = localStorage.getItem('theme');
 
@@ -75,6 +159,168 @@
         }
 
         toggleSwitch.addEventListener('change', switchTheme, false);
+
+        // Language switcher
+        const translations = {
+            vi: {
+                greeting: "Xin chào! 👋",
+                intro: "Mình là Cún",
+                nickname: "(Hay còn được gọi là Cún cute 😊)",
+                "about-title": "Về mình ✨",
+                "about-content": "Mình là một người yêu thích công nghệ và sáng tạo. Mình thích khám phá những điều mới mẻ, đọc sách và nghe nhạc. Mình luôn cố gắng sống tích cực và lan tỏa năng lượng tốt đến mọi người xung quanh.",
+                slogan: "\"Hãy sống như một bông hoa, tỏa hương thơm ngát cho đời 🌸\"",
+                connect: "Kết nối với mình nhé! 💕"
+            },
+            en: {
+                greeting: "Hello! 👋",
+                intro: "I'm Cun",
+                nickname: "(Also known as Cute Cun 😊)",
+                "about-title": "About Me ✨",
+                "about-content": "I'm a tech enthusiast and creative person. I love exploring new things, reading books, and listening to music. I always try to live positively and spread good energy to everyone around me.",
+                slogan: "\"Live like a flower, spreading sweet fragrance to life 🌸\"",
+                connect: "Connect with me! 💕"
+            },
+            fr: {
+                greeting: "Bonjour! 👋",
+                intro: "Je suis Cun",
+                nickname: "(Aussi connue comme Mignonne Cun 😊)",
+                "about-title": "À propos de moi ✨",
+                "about-content": "Je suis passionnée de technologie et créative. J'aime explorer de nouvelles choses, lire des livres et écouter de la musique. J'essaie toujours de vivre positivement et de répandre une bonne énergie autour de moi.",
+                slogan: "\"Vivre comme une fleur, répandant un doux parfum dans la vie 🌸\"",
+                connect: "Connectez-vous avec moi! 💕"
+            }
+        };
+
+        const languageBtn = document.getElementById('languageBtn');
+        const currentLang = document.querySelector('.current-lang');
+        const langOptions = document.querySelectorAll('.lang-option');
+        const dropdown = document.querySelector('.language-dropdown');
+
+        // Toggle dropdown
+        languageBtn.addEventListener('click', () => {
+            dropdown.classList.toggle('show');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!languageBtn.contains(e.target)) {
+                dropdown.classList.remove('show');
+            }
+        });
+
+        // Change language
+        langOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                const lang = option.dataset.lang;
+                currentLang.textContent = lang.toUpperCase();
+                
+                document.querySelectorAll('[data-translate]').forEach(element => {
+                    const key = element.dataset.translate;
+                    if (translations[lang][key]) {
+                        element.textContent = translations[lang][key];
+                    }
+                });
+
+                dropdown.classList.remove('show');
+                localStorage.setItem('language', lang);
+            });
+        });
+
+        // Load saved language
+        const savedLang = localStorage.getItem('language') || 'vi';
+        currentLang.textContent = savedLang.toUpperCase();
+        langOptions.forEach(option => {
+            if (option.dataset.lang === savedLang) {
+                option.click();
+            }
+        });
+
+        // Cute phone dialog logic
+        const showPhoneBtn = document.getElementById('showPhoneBtn');
+        const cuteDialogOverlay = document.getElementById('cuteDialogOverlay');
+        const closeDialogBtn = document.getElementById('closeDialogBtn');
+        const submitPassBtn = document.getElementById('submitPassBtn');
+        const phonePassInput = document.getElementById('phonePassInput');
+        const dialogMessage = document.getElementById('dialogMessage');
+        const phoneRevealOverlay = document.getElementById('phoneRevealOverlay');
+        const closePhoneDialogBtn = document.getElementById('closePhoneDialogBtn');
+        const phoneNumber = document.getElementById('phoneNumber');
+
+        showPhoneBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            cuteDialogOverlay.style.display = 'flex';
+            phonePassInput.value = '';
+            dialogMessage.textContent = '';
+            phonePassInput.focus();
+        });
+        closeDialogBtn.addEventListener('click', () => {
+            cuteDialogOverlay.style.display = 'none';
+        });
+        submitPassBtn.addEventListener('click', () => {
+            if (phonePassInput.value === 'yeudangnhat') {
+                cuteDialogOverlay.style.display = 'none';
+                setTimeout(() => {
+                    phoneRevealOverlay.style.display = 'flex';
+                    phoneNumber.classList.add('reveal-anim');
+                }, 300);
+            } else {
+                dialogMessage.textContent = 'Sai mật khẩu rồi 😢 Thử lại nhé!';
+                dialogMessage.style.color = '#e91e63';
+                phonePassInput.value = '';
+                phonePassInput.focus();
+            }
+        });
+        phonePassInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') submitPassBtn.click();
+        });
+        closePhoneDialogBtn.addEventListener('click', () => {
+            phoneRevealOverlay.style.display = 'none';
+            phoneNumber.classList.remove('reveal-anim');
+        });
+
+        // Cute login dialog logic
+        const flowerFabBtn = document.getElementById('flowerFabBtn');
+        const loginDialogOverlay = document.getElementById('loginDialogOverlay');
+        const closeLoginDialogBtn = document.getElementById('closeLoginDialogBtn');
+        const submitLoginBtn = document.getElementById('submitLoginBtn');
+        const loginUserInput = document.getElementById('loginUserInput');
+        const loginPassInput = document.getElementById('loginPassInput');
+        const loginDialogMessage = document.getElementById('loginDialogMessage');
+        const loginSuccessOverlay = document.getElementById('loginSuccessOverlay');
+        const closeLoginSuccessBtn = document.getElementById('closeLoginSuccessBtn');
+
+        flowerFabBtn.addEventListener('click', () => {
+            loginDialogOverlay.style.display = 'flex';
+            loginUserInput.value = '';
+            loginPassInput.value = '';
+            loginDialogMessage.textContent = '';
+            loginUserInput.focus();
+        });
+        closeLoginDialogBtn.addEventListener('click', () => {
+            loginDialogOverlay.style.display = 'none';
+        });
+        submitLoginBtn.addEventListener('click', () => {
+            if (loginUserInput.value === 'yeudangnhat' && loginPassInput.value === 'yeudangnhat') {
+                loginDialogOverlay.style.display = 'none';
+                setTimeout(() => {
+                    loginSuccessOverlay.style.display = 'flex';
+                }, 300);
+            } else {
+                loginDialogMessage.textContent = 'Sai tài khoản hoặc mật khẩu rồi 😢';
+                loginDialogMessage.style.color = '#e91e63';
+                loginPassInput.value = '';
+                loginPassInput.focus();
+            }
+        });
+        loginUserInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') loginPassInput.focus();
+        });
+        loginPassInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') submitLoginBtn.click();
+        });
+        closeLoginSuccessBtn.addEventListener('click', () => {
+            loginSuccessOverlay.style.display = 'none';
+        });
     </script>
 </body>
 </html> 
