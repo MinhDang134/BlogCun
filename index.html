@@ -254,28 +254,38 @@
                     setAutoGreeting(lang);
                 }, 100);
 
-                // Automation: Hiệu ứng typing cho slogan
-                function typeSloganEffect(text) {
-                    const sloganEl = document.getElementById('sloganTyping');
-                    sloganEl.textContent = '';
-                    let i = 0;
-                    function type() {
-                        if (i < text.length) {
-                            sloganEl.textContent += text.charAt(i);
-                            i++;
-                            setTimeout(type, 32);
-                        }
+                // Bỏ automation typing slogan, chỉ hiển thị slogan trực tiếp
+                function renderProfileData() {
+                    const data = JSON.parse(localStorage.getItem('profileData') || '{}');
+                    if (data.name) {
+                        document.querySelector('[data-translate="intro"]').innerHTML = `Mình là <span class="highlight">${data.name}</span>`;
                     }
-                    type();
+                    if (data.nickname) {
+                        document.querySelector('[data-translate="nickname"]').textContent = `(Hay còn được gọi là ${data.nickname})`;
+                    }
+                    if (data.about) {
+                        document.querySelector('[data-translate="about-content"]').textContent = data.about;
+                    }
+                    if (data.slogan) {
+                        document.querySelector('[data-translate="slogan"]').textContent = data.slogan;
+                    } else {
+                        // Nếu không có slogan cá nhân, lấy slogan mặc định theo ngôn ngữ
+                        const lang = localStorage.getItem('language') || 'vi';
+                        let slogan = '';
+                        if (lang === 'vi') slogan = '"Hãy sống như một bông hoa, tỏa hương thơm ngát cho đời 🌸"';
+                        else if (lang === 'en') slogan = '"Live like a flower, spreading sweet fragrance to life 🌸"';
+                        else slogan = '"Vivre comme une fleur, répandant un doux parfum dans la vie 🌸"';
+                        document.querySelector('[data-translate="slogan"]').textContent = slogan;
+                    }
                 }
-                // Gọi khi load và khi đổi ngôn ngữ
+                // Gọi khi load trang
+                renderProfileData();
+
+                // Khi đổi ngôn ngữ thì update automation và render lại dữ liệu
                 setTimeout(() => {
-                    let slogan = '';
-                    if (lang === 'vi') slogan = '"Hãy sống như một bông hoa, tỏa hương thơm ngát cho đời 🌸"';
-                    else if (lang === 'en') slogan = '"Live like a flower, spreading sweet fragrance to life 🌸"';
-                    else slogan = '"Vivre comme une fleur, répandant un doux parfum dans la vie 🌸"';
-                    typeSloganEffect(slogan);
-                }, 400);
+                    setAutoGreeting(option.dataset.lang);
+                    renderProfileData();
+                }, 200);
             });
         });
 

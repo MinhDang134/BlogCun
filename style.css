@@ -191,6 +191,12 @@ h2 {
     border-radius: 15px;
 }
 
+.slogan p, #sloganTyping {
+    font-family: 'Quicksand', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', 'Arial', sans-serif;
+    word-break: break-word;
+    white-space: pre-line;
+}
+
 .social-links {
     text-align: center;
     margin-top: 30px;
