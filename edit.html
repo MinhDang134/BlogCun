@@ -6,49 +6,404 @@
     <title>Chỉnh sửa thông tin cá nhân</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .welcome-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            z-index: 1000;
+            opacity: 0;
+            animation: welcomeFade 2s ease-in-out forwards;
+        }
+
+        .welcome-message h2 {
+            color: #e91e63;
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .welcome-message .hearts {
+            font-size: 20px;
+            margin-top: 10px;
+            animation: heartBeat 1s infinite;
+        }
+
+        @keyframes welcomeFade {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+            40% { transform: translate(-50%, -50%) scale(1); }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        @keyframes heartBeat {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .edit-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .edit-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px dashed rgba(233, 30, 99, 0.2);
+        }
+
+        .edit-header h1 {
+            color: #e91e63;
+            font-size: 28px;
+            margin: 0;
+        }
+
+        .edit-form {
+            display: grid;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            color: #666;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .edit-input, .edit-textarea {
+            padding: 12px 16px;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: border-color 0.2s ease;
+            background: #fff;
+            box-shadow: none;
+        }
+
+        .edit-input:focus, .edit-textarea:focus {
+            border-color: #e91e63;
+            outline: none;
+            box-shadow: none;
+        }
+
+        .edit-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .save-btn, .logout-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .save-btn {
+            background: #e91e63;
+            color: white;
+        }
+
+        .save-btn:hover {
+            background: #d81557;
+            transform: translateY(-2px);
+        }
+
+        .logout-btn {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .logout-btn:hover {
+            background: #eee;
+            transform: translateY(-2px);
+        }
+
+        .dialog-message {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 16px;
+            color: #e91e63;
+            min-height: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .edit-container {
+                margin: 20px;
+                padding: 20px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .save-btn, .logout-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        .avatar-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+        }
+
+        .avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid #e91e63;
+            box-shadow: 0 5px 15px rgba(233, 30, 99, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .avatar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(233, 30, 99, 0.3);
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-decoration {
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            border: 2px dashed #e91e63;
+            border-radius: 50%;
+            animation: rotate 10s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .change-avatar-btn {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #e91e63;
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(233, 30, 99, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .change-avatar-btn:hover {
+            transform: scale(1.1);
+            background: #d81557;
+        }
+
+        .avatar-styles {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            max-width: 90%;
+            width: 400px;
+            pointer-events: none;
+        }
+
+        .avatar-styles.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+            pointer-events: auto;
+        }
+
+        .avatar-styles h3 {
+            color: #e91e63;
+            margin: 0 0 15px;
+            text-align: center;
+        }
+
+        .style-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .style-option {
+            width: 100%;
+            aspect-ratio: 1;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .style-option:hover {
+            border-color: #e91e63;
+            transform: scale(1.05);
+        }
+
+        .style-option img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .style-option.selected {
+            border-color: #e91e63;
+            box-shadow: 0 0 0 2px #e91e63;
+        }
+
+        .avatar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            pointer-events: none;
+        }
+
+        .avatar-overlay.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+            pointer-events: auto;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .close-styles {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 5px;
+        }
+
+        .close-styles:hover {
+            color: #e91e63;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <div class="profile-card">
-            <button class="logout-btn" id="logoutBtn" title="Đăng xuất">⎋ Đăng xuất</button>
-            <div class="profile-header">
-                <div class="avatar-container">
-                    <div class="avatar">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Cun&backgroundColor=b6e3f4" alt="Avatar" id="avatarImg">
-                    </div>
-                    <div class="avatar-decoration"></div>
+    <div class="welcome-message">
+        <h2>Xin Chào Cún iu</h2>
+        <div class="hearts">💖💖💖</div>
+    </div>
+
+    <div class="edit-container">
+        <div class="edit-header">
+            <div class="avatar-container">
+                <div class="avatar">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Cun&backgroundColor=b6e3f4" alt="Avatar" id="avatarImg">
                 </div>
-                <input type="text" id="editName" class="edit-input main-name" value="Cún" />
-                <input type="text" id="editNickname" class="edit-input nickname" value="Cún cute 😊" />
+                <div class="avatar-decoration"></div>
+                <button class="change-avatar-btn" id="changeAvatarBtn">
+                    <i class="fas fa-camera"></i>
+                </button>
             </div>
-            <div class="profile-content">
-                <div class="about-me">
-                    <h3>Về mình ✨</h3>
-                    <textarea id="editAbout" class="edit-textarea">Mình là một người yêu thích công nghệ và sáng tạo. Mình thích khám phá những điều mới mẻ, đọc sách và nghe nhạc. Mình luôn cố gắng sống tích cực và lan tỏa năng lượng tốt đến mọi người xung quanh.</textarea>
-                </div>
-                <div class="slogan">
-                    <textarea id="editSlogan" class="edit-textarea">"Hãy sống như một bông hoa, tỏa hương thơm ngát cho đời 🌸"</textarea>
-                </div>
-                <div class="social-links">
-                    <h3>Kết nối với mình nhé! 💕</h3>
-                    <div class="social-icons">
-                        <a href="#" class="social-icon"><i class="fab fa-facebook"></i></a>
-                        <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="social-icon phone-icon"><i class="fas fa-phone"></i></a>
-                        <a href="#" class="social-icon"><i class="fab fa-tiktok"></i></a>
-                        <a href="#" class="social-icon locket-icon"><i class="fas fa-heart"></i></a>
-                    </div>
-                </div>
-                <button class="submit-pass-btn save-btn" id="saveProfileBtn">Lưu thông tin</button>
-                <div class="dialog-message" id="saveMessage"></div>
-                
-                <div class="version-history">
-                    <h3>Lịch sử các phiên bản 📚</h3>
-                    <div id="versionList" class="version-list"></div>
-                </div>
+            <h1>✨ Chỉnh sửa thông tin cá nhân ✨</h1>
+        </div>
+
+        <form class="edit-form">
+            <div class="form-group">
+                <label for="editName">Tên của bạn</label>
+                <input type="text" id="editName" class="edit-input" placeholder="Nhập tên của bạn...">
             </div>
+
+            <div class="form-group">
+                <label for="editNickname">Biệt danh</label>
+                <input type="text" id="editNickname" class="edit-input" placeholder="Nhập biệt danh của bạn..." autocomplete="off">
+            </div>
+
+            <div class="form-group">
+                <label for="editAbout">Giới thiệu về bản thân</label>
+                <textarea id="editAbout" class="edit-textarea" placeholder="Viết gì đó về bản thân bạn..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="editSlogan">Câu nói yêu thích</label>
+                <textarea id="editSlogan" class="edit-textarea" placeholder="Nhập câu nói yêu thích của bạn..."></textarea>
+            </div>
+
+            <div class="button-group">
+                <button type="button" class="save-btn" id="saveProfileBtn">
+                    <i class="fas fa-save"></i>
+                    Lưu thông tin
+                </button>
+                <button type="button" class="logout-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Đăng xuất
+                </button>
+            </div>
+        </form>
+
+        <div class="dialog-message" id="saveMessage"></div>
+    </div>
+
+    <div class="avatar-overlay" id="avatarOverlay"></div>
+    <div class="avatar-styles" id="avatarStyles">
+        <button class="close-styles" id="closeStyles">×</button>
+        <h3>Chọn style avatar mới ✨</h3>
+        <div class="style-grid" id="styleGrid">
+            <!-- Style options will be added here -->
         </div>
     </div>
+
     <script>
         // Load data from API
         window.onload = async function() {
@@ -60,20 +415,6 @@
                     document.getElementById('editNickname').value = data.profile.nickname;
                     document.getElementById('editAbout').value = data.profile.about;
                     document.getElementById('editSlogan').value = data.profile.slogan;
-                    
-                    // Hiển thị thông tin phiên bản hiện tại
-                    if (data.version) {
-                        const versionList = document.getElementById('versionList');
-                        const versionItem = document.createElement('div');
-                        versionItem.className = 'version-item current';
-                        versionItem.innerHTML = `
-                            <div class="version-info">
-                                <span class="version-file">${data.version.file}</span>
-                                <span class="version-time">${data.version.timestamp}</span>
-                            </div>
-                        `;
-                        versionList.appendChild(versionItem);
-                    }
                 }
             } catch (error) {
                 console.error('Error loading profile:', error);
@@ -119,64 +460,62 @@
         document.getElementById('logoutBtn').onclick = function() {
             window.location.href = 'index.html';
         };
+
+        // Avatar styles
+        const styles = [
+            { name: 'avataaars', label: 'Avataaars' },
+            { name: 'bottts', label: 'Bottts' },
+            { name: 'pixel-art', label: 'Pixel Art' },
+            { name: 'adventurer', label: 'Adventurer' },
+            { name: 'big-ears', label: 'Big Ears' },
+            { name: 'micah', label: 'Micah' }
+        ];
+
+        const styleGrid = document.getElementById('styleGrid');
+        styles.forEach(style => {
+            const div = document.createElement('div');
+            div.className = 'style-option';
+            div.innerHTML = `
+                <img src="https://api.dicebear.com/7.x/${style.name}/svg?seed=Cun&backgroundColor=b6e3f4" 
+                     alt="${style.label}"
+                     data-style="${style.name}">
+            `;
+            styleGrid.appendChild(div);
+        });
+
+        function hideAvatarDialog() {
+            document.getElementById('avatarStyles').classList.remove('show');
+            document.getElementById('avatarOverlay').classList.remove('show');
+        }
+        const changeAvatarBtn = document.getElementById('changeAvatarBtn');
+        const avatarStyles = document.getElementById('avatarStyles');
+        const avatarOverlay = document.getElementById('avatarOverlay');
+        const closeStyles = document.getElementById('closeStyles');
+        const avatarImg = document.getElementById('avatarImg');
+        changeAvatarBtn.addEventListener('click', () => {
+            avatarStyles.classList.add('show');
+            avatarOverlay.classList.add('show');
+        });
+        closeStyles.addEventListener('click', hideAvatarDialog);
+        avatarOverlay.addEventListener('click', hideAvatarDialog);
+
+        document.querySelectorAll('.style-option').forEach(option => {
+            option.addEventListener('click', () => {
+                const style = option.querySelector('img').dataset.style;
+                const newAvatarUrl = `https://api.dicebear.com/7.x/${style}/svg?seed=Cun&backgroundColor=b6e3f4`;
+                avatarImg.src = newAvatarUrl;
+                
+                // Update selected state
+                document.querySelectorAll('.style-option').forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+                
+                // Close the dialog after a short delay
+                setTimeout(() => {
+                    avatarStyles.classList.remove('show');
+                    avatarOverlay.classList.remove('show');
+                }, 500);
+            });
+        });
     </script>
-    <style>
-        .version-history {
-            margin-top: 20px;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-        }
-        
-        .version-history h3 {
-            margin: 0 0 10px 0;
-            color: #e91e63;
-        }
-        
-        .version-list {
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        
-        .version-item {
-            padding: 8px;
-            margin: 5px 0;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .version-item.current {
-            background: rgba(233, 30, 99, 0.1);
-            border-left: 3px solid #e91e63;
-        }
-        
-        .version-item.new {
-            animation: highlight 2s ease-out;
-        }
-        
-        .version-info {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        
-        .version-file {
-            font-weight: bold;
-            color: #e91e63;
-        }
-        
-        .version-time {
-            font-size: 0.9em;
-            color: #666;
-        }
-        
-        @keyframes highlight {
-            0% { background: rgba(233, 30, 99, 0.2); }
-            100% { background: rgba(255, 255, 255, 0.05); }
-        }
-    </style>
 </body>
 </html> 
