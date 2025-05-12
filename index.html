@@ -137,6 +137,25 @@
         </div>
     </div>
     <script>
+        // Load profile data from API
+        async function loadProfileData() {
+            try {
+                const response = await fetch('http://localhost:8080/api.php');
+                const data = await response.json();
+                if (data.profile) {
+                    document.querySelector('[data-translate="intro"]').innerHTML = `Mình là <span class="highlight">${data.profile.name}</span>`;
+                    document.querySelector('[data-translate="nickname"]').textContent = `(Hay còn được gọi là ${data.profile.nickname})`;
+                    document.querySelector('[data-translate="about-content"]').textContent = data.profile.about;
+                    document.querySelector('[data-translate="slogan"]').textContent = data.profile.slogan;
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
+        }
+
+        // Load data when page loads
+        window.onload = loadProfileData;
+
         // Theme switcher
         const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
         const currentTheme = localStorage.getItem('theme');
@@ -254,38 +273,8 @@
                     setAutoGreeting(lang);
                 }, 100);
 
-                // Bỏ automation typing slogan, chỉ hiển thị slogan trực tiếp
-                function renderProfileData() {
-                    const data = JSON.parse(localStorage.getItem('profileData') || '{}');
-                    if (data.name) {
-                        document.querySelector('[data-translate="intro"]').innerHTML = `Mình là <span class="highlight">${data.name}</span>`;
-                    }
-                    if (data.nickname) {
-                        document.querySelector('[data-translate="nickname"]').textContent = `(Hay còn được gọi là ${data.nickname})`;
-                    }
-                    if (data.about) {
-                        document.querySelector('[data-translate="about-content"]').textContent = data.about;
-                    }
-                    if (data.slogan) {
-                        document.querySelector('[data-translate="slogan"]').textContent = data.slogan;
-                    } else {
-                        // Nếu không có slogan cá nhân, lấy slogan mặc định theo ngôn ngữ
-                        const lang = localStorage.getItem('language') || 'vi';
-                        let slogan = '';
-                        if (lang === 'vi') slogan = '"Hãy sống như một bông hoa, tỏa hương thơm ngát cho đời 🌸"';
-                        else if (lang === 'en') slogan = '"Live like a flower, spreading sweet fragrance to life 🌸"';
-                        else slogan = '"Vivre comme une fleur, répandant un doux parfum dans la vie 🌸"';
-                        document.querySelector('[data-translate="slogan"]').textContent = slogan;
-                    }
-                }
-                // Gọi khi load trang
-                renderProfileData();
-
-                // Khi đổi ngôn ngữ thì update automation và render lại dữ liệu
-                setTimeout(() => {
-                    setAutoGreeting(option.dataset.lang);
-                    renderProfileData();
-                }, 200);
+                // Load profile data after language change
+                loadProfileData();
             });
         });
 

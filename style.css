@@ -410,15 +410,16 @@ h2 {
     background: linear-gradient(135deg, #fff5f8 60%, #ffe0f7 100%);
     border-radius: 20px;
     box-shadow: 0 8px 32px var(--shadow-color);
-    padding: 32px 24px 24px 24px;
-    min-width: 320px;
-    max-width: 90vw;
+    padding: 48px 36px 36px 36px;
+    min-width: 400px;
+    max-width: 98vw;
     max-height: 90vh;
     overflow-y: auto;
     text-align: center;
     position: relative;
     animation: popIn 0.4s cubic-bezier(.68,-0.55,.27,1.55);
     border: 2.5px solid #ffb6c1;
+    font-size: 1.1em;
 }
 .cute-dialog h2 {
     color: var(--highlight-color);
@@ -484,13 +485,13 @@ h2 {
     animation: decorFloat 3s infinite alternate;
 }
 .decor-heart {
-    top: 10px;
-    left: 18px;
+    top: 18px;
+    left: 28px;
     animation-delay: 0s;
 }
 .decor-star {
-    top: 10px;
-    right: 18px;
+    top: 18px;
+    right: 28px;
     animation-delay: 1s;
 }
 .decor-flower {

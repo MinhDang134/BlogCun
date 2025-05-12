@@ -45,25 +45,57 @@
         </div>
     </div>
     <script>
-        // Load data from localStorage if available
-        window.onload = function() {
-            const data = JSON.parse(localStorage.getItem('profileData') || '{}');
-            if (data.name) document.getElementById('editName').value = data.name;
-            if (data.nickname) document.getElementById('editNickname').value = data.nickname;
-            if (data.about) document.getElementById('editAbout').value = data.about;
-            if (data.slogan) document.getElementById('editSlogan').value = data.slogan;
+        // Load data from API
+        window.onload = async function() {
+            try {
+                const response = await fetch('http://localhost:8080/api.php');
+                const data = await response.json();
+                if (data.profile) {
+                    document.getElementById('editName').value = data.profile.name;
+                    document.getElementById('editNickname').value = data.profile.nickname;
+                    document.getElementById('editAbout').value = data.profile.about;
+                    document.getElementById('editSlogan').value = data.profile.slogan;
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            }
         };
-        document.getElementById('saveProfileBtn').onclick = function() {
-            const name = document.getElementById('editName').value;
-            const nickname = document.getElementById('editNickname').value;
-            const about = document.getElementById('editAbout').value;
-            const slogan = document.getElementById('editSlogan').value;
-            localStorage.setItem('profileData', JSON.stringify({name, nickname, about, slogan}));
-            document.getElementById('saveMessage').textContent = 'Đã lưu thông tin thành công! ✨';
-            setTimeout(() => {
-                document.getElementById('saveMessage').textContent = '';
-            }, 2000);
+
+        // Save data to API
+        document.getElementById('saveProfileBtn').onclick = async function() {
+            const profileData = {
+                profile: {
+                    name: document.getElementById('editName').value,
+                    nickname: document.getElementById('editNickname').value,
+                    about: document.getElementById('editAbout').value,
+                    slogan: document.getElementById('editSlogan').value
+                }
+            };
+
+            try {
+                const response = await fetch('http://localhost:8080/api.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(profileData)
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('saveMessage').textContent = 'Đã lưu thông tin thành công! ✨';
+                    setTimeout(() => {
+                        document.getElementById('saveMessage').textContent = '';
+                    }, 2000);
+                } else {
+                    document.getElementById('saveMessage').textContent = 'Có lỗi xảy ra khi lưu thông tin 😢';
+                }
+            } catch (error) {
+                console.error('Error saving profile:', error);
+                document.getElementById('saveMessage').textContent = 'Có lỗi xảy ra khi lưu thông tin 😢';
+            }
         };
+
         // Đăng xuất
         document.getElementById('logoutBtn').onclick = function() {
             window.location.href = 'index.html';
