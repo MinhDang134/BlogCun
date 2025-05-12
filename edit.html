@@ -104,8 +104,10 @@
         }
 
         .edit-textarea {
+            width: 100%;
             min-height: 120px;
             resize: vertical;
+            padding-right: 80px;
         }
 
         .button-group {
@@ -337,6 +339,133 @@
         .close-styles:hover {
             color: #e91e63;
         }
+
+        .slogan-input-group {
+            position: relative;
+        }
+
+        .slogan-buttons {
+            position: absolute;
+            right: 10px;
+            bottom: 10px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .slogan-btn {
+            width: 28px;
+            height: 28px;
+            padding: 0;
+            background: #ffe0ef;
+            border: 2px solid #e91e63;
+            border-radius: 50%;
+            color: #e91e63;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .slogan-btn:hover {
+            background: #e91e63;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .suggest-btn {
+            position: absolute;
+            right: 10px;
+            bottom: 10px;
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            background: #ffe0ef;
+            border: 2px solid #e91e63;
+            border-radius: 50%;
+            color: #e91e63;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            z-index: 1;
+        }
+
+        .suggest-btn:hover {
+            background: #e91e63;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .suggestions-dialog {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            max-width: 90%;
+            width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .suggestions-dialog.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .suggestions-dialog h3 {
+            color: #e91e63;
+            margin: 0 0 20px;
+            text-align: center;
+            font-size: 20px;
+        }
+
+        .suggestions-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .suggestion-item {
+            padding: 15px;
+            background: #fff;
+            border: 2px solid #ffe0ef;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .suggestion-item:hover {
+            background: #ffe0ef;
+            border-color: #e91e63;
+            transform: translateY(-2px);
+        }
+
+        .close-suggestions {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 5px;
+        }
+
+        .close-suggestions:hover {
+            color: #e91e63;
+        }
     </style>
 </head>
 <body>
@@ -377,7 +506,17 @@
 
             <div class="form-group">
                 <label for="editSlogan">Câu nói yêu thích</label>
-                <textarea id="editSlogan" class="edit-textarea" placeholder="Nhập câu nói yêu thích của bạn..."></textarea>
+                <div class="slogan-input-group">
+                    <textarea id="editSlogan" class="edit-textarea" placeholder="Nhập câu nói yêu thích của bạn..."></textarea>
+                    <div class="slogan-buttons">
+                        <button type="button" class="slogan-btn emoji-btn" title="Chọn emoji">
+                            <i class="fas fa-smile"></i>
+                        </button>
+                        <button type="button" class="slogan-btn quote-btn" title="Câu nói gợi ý">
+                            <i class="fas fa-quote-right"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <div class="button-group">
@@ -401,6 +540,14 @@
         <h3>Chọn style avatar mới ✨</h3>
         <div class="style-grid" id="styleGrid">
             <!-- Style options will be added here -->
+        </div>
+    </div>
+
+    <div class="suggestions-dialog" id="suggestionsDialog">
+        <button class="close-suggestions" id="closeSuggestions">×</button>
+        <h3>✨ Câu nói gợi ý ✨</h3>
+        <div class="suggestions-list" id="suggestionsList">
+            <!-- Suggestions will be added here -->
         </div>
     </div>
 
@@ -472,6 +619,8 @@
         ];
 
         const styleGrid = document.getElementById('styleGrid');
+        const avatarImg = document.getElementById('avatarImg');
+
         styles.forEach(style => {
             const div = document.createElement('div');
             div.className = 'style-option';
@@ -483,19 +632,22 @@
             styleGrid.appendChild(div);
         });
 
+        // Avatar dialog logic
         function hideAvatarDialog() {
             document.getElementById('avatarStyles').classList.remove('show');
             document.getElementById('avatarOverlay').classList.remove('show');
         }
+
         const changeAvatarBtn = document.getElementById('changeAvatarBtn');
         const avatarStyles = document.getElementById('avatarStyles');
         const avatarOverlay = document.getElementById('avatarOverlay');
         const closeStyles = document.getElementById('closeStyles');
-        const avatarImg = document.getElementById('avatarImg');
+
         changeAvatarBtn.addEventListener('click', () => {
             avatarStyles.classList.add('show');
             avatarOverlay.classList.add('show');
         });
+
         closeStyles.addEventListener('click', hideAvatarDialog);
         avatarOverlay.addEventListener('click', hideAvatarDialog);
 
@@ -505,16 +657,138 @@
                 const newAvatarUrl = `https://api.dicebear.com/7.x/${style}/svg?seed=Cun&backgroundColor=b6e3f4`;
                 avatarImg.src = newAvatarUrl;
                 
-                // Update selected state
                 document.querySelectorAll('.style-option').forEach(opt => opt.classList.remove('selected'));
                 option.classList.add('selected');
                 
-                // Close the dialog after a short delay
-                setTimeout(() => {
-                    avatarStyles.classList.remove('show');
-                    avatarOverlay.classList.remove('show');
-                }, 500);
+                setTimeout(hideAvatarDialog, 500);
             });
+        });
+
+        // Slogan buttons logic
+        const emojiBtn = document.querySelector('.emoji-btn');
+        const quoteBtn = document.querySelector('.quote-btn');
+        const editSlogan = document.getElementById('editSlogan');
+
+        // Emoji picker
+        emojiBtn.addEventListener('click', function() {
+            const emoji = '🌸 💖 💝 💕 💓 💗 💘 💞 💟 💌 💋 💯 💫 ✨ 🌟 💫 🌈 🦋 🦄 🐰 🐱 🐶 🐼 🐨 🦁 🐯 🐮 🐷 🐸 🐙 🐬 🐳 🐋 🐠 🐡 🐢 🐍 🐊 🐅 🐆 🐎 🐴 🦄 🐝 🐛 🦋 🐌 🐞 🐜 🦗 🕷️ 🕸️ 🦂 🦀';
+            const emojiList = emoji.split(' ');
+            const emojiDialog = document.createElement('div');
+            emojiDialog.className = 'emoji-dialog';
+            emojiDialog.innerHTML = `
+                <div class="emoji-grid">
+                    ${emojiList.map(e => `<span class="emoji-item">${e}</span>`).join('')}
+                </div>
+            `;
+            document.body.appendChild(emojiDialog);
+
+            // Style for emoji dialog
+            const style = document.createElement('style');
+            style.textContent = `
+                .emoji-dialog {
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: white;
+                    padding: 20px;
+                    border-radius: 15px;
+                    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                    z-index: 1000;
+                    max-width: 300px;
+                    max-height: 300px;
+                    overflow-y: auto;
+                }
+                .emoji-grid {
+                    display: grid;
+                    grid-template-columns: repeat(8, 1fr);
+                    gap: 10px;
+                }
+                .emoji-item {
+                    cursor: pointer;
+                    font-size: 20px;
+                    text-align: center;
+                    padding: 5px;
+                    border-radius: 5px;
+                    transition: all 0.2s;
+                }
+                .emoji-item:hover {
+                    background: #ffe0ef;
+                    transform: scale(1.2);
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Add click event for emojis
+            emojiDialog.querySelectorAll('.emoji-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const cursorPos = editSlogan.selectionStart;
+                    const text = editSlogan.value;
+                    editSlogan.value = text.slice(0, cursorPos) + this.textContent + text.slice(cursorPos);
+                    document.body.removeChild(emojiDialog);
+                    document.head.removeChild(style);
+                });
+            });
+
+            // Close dialog when clicking outside
+            document.addEventListener('click', function closeDialog(e) {
+                if (!emojiDialog.contains(e.target) && e.target !== emojiBtn) {
+                    document.body.removeChild(emojiDialog);
+                    document.head.removeChild(style);
+                    document.removeEventListener('click', closeDialog);
+                }
+            });
+        });
+
+        // Quote suggestions
+        const suggestions = [
+            "Hãy sống như một bông hoa, tỏa hương thơm ngát cho đời 🌸",
+            "Mỗi ngày là một trang sách mới, hãy viết nên câu chuyện đẹp nhất của bạn 📖",
+            "Cuộc sống như một bức tranh, bạn là người vẽ nên những gam màu tươi sáng 🎨",
+            "Hạnh phúc không phải là đích đến, mà là hành trình ta đi qua mỗi ngày 🌟",
+            "Hãy để trái tim dẫn lối, và đôi chân sẽ đưa bạn đến nơi bạn thuộc về 💝",
+            "Mỗi khoảnh khắc đều là một món quà, hãy trân trọng và tận hưởng nó 🎁",
+            "Cuộc sống là những chuyến phiêu lưu, hãy dũng cảm khám phá 🌈",
+            "Hãy sống như một ngôi sao, tỏa sáng và truyền cảm hứng cho người khác ⭐",
+            "Mỗi ngày mới là một cơ hội để làm điều gì đó tuyệt vời 🌅",
+            "Hãy để tình yêu và niềm vui dẫn đường cho mọi quyết định của bạn 💖",
+            "Sống là để yêu thương, là để chia sẻ, là để hạnh phúc 💕",
+            "Hãy luôn mỉm cười, vì nụ cười là liều thuốc tốt nhất cho tâm hồn 😊",
+            "Cuộc sống đẹp như một bông hoa, hãy tận hưởng từng khoảnh khắc 🌺",
+            "Mỗi người đều là một ngôi sao, hãy tỏa sáng theo cách riêng của mình ✨",
+            "Hạnh phúc đơn giản là được là chính mình, được yêu thương và được sống trọn vẹn 💫"
+        ];
+
+        const suggestionsDialog = document.getElementById('suggestionsDialog');
+        const closeSuggestions = document.getElementById('closeSuggestions');
+
+        // Add suggestions to the list
+        suggestions.forEach(suggestion => {
+            const div = document.createElement('div');
+            div.className = 'suggestion-item';
+            div.textContent = suggestion;
+            div.onclick = () => {
+                editSlogan.value = suggestion;
+                suggestionsDialog.classList.remove('show');
+            };
+            document.getElementById('suggestionsList').appendChild(div);
+        });
+
+        // Show suggestions dialog
+        quoteBtn.addEventListener('click', () => {
+            suggestionsDialog.classList.add('show');
+        });
+
+        // Close suggestions dialog
+        closeSuggestions.addEventListener('click', () => {
+            suggestionsDialog.classList.remove('show');
+        });
+
+        // Close dialog when clicking outside
+        document.addEventListener('click', (e) => {
+            if (e.target === suggestionsDialog) {
+                suggestionsDialog.classList.remove('show');
+            }
         });
     </script>
 </body>
