@@ -41,6 +41,11 @@
                 </div>
                 <button class="submit-pass-btn save-btn" id="saveProfileBtn">Lưu thông tin</button>
                 <div class="dialog-message" id="saveMessage"></div>
+                
+                <div class="version-history">
+                    <h3>Lịch sử các phiên bản 📚</h3>
+                    <div id="versionList" class="version-list"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -55,6 +60,20 @@
                     document.getElementById('editNickname').value = data.profile.nickname;
                     document.getElementById('editAbout').value = data.profile.about;
                     document.getElementById('editSlogan').value = data.profile.slogan;
+                    
+                    // Hiển thị thông tin phiên bản hiện tại
+                    if (data.version) {
+                        const versionList = document.getElementById('versionList');
+                        const versionItem = document.createElement('div');
+                        versionItem.className = 'version-item current';
+                        versionItem.innerHTML = `
+                            <div class="version-info">
+                                <span class="version-file">${data.version.file}</span>
+                                <span class="version-time">${data.version.timestamp}</span>
+                            </div>
+                        `;
+                        versionList.appendChild(versionItem);
+                    }
                 }
             } catch (error) {
                 console.error('Error loading profile:', error);
@@ -86,7 +105,7 @@
                     document.getElementById('saveMessage').textContent = 'Đã lưu thông tin thành công! ✨';
                     setTimeout(() => {
                         document.getElementById('saveMessage').textContent = '';
-                    }, 2000);
+                    }, 3000);
                 } else {
                     document.getElementById('saveMessage').textContent = 'Có lỗi xảy ra khi lưu thông tin 😢';
                 }
@@ -101,5 +120,63 @@
             window.location.href = 'index.html';
         };
     </script>
+    <style>
+        .version-history {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        
+        .version-history h3 {
+            margin: 0 0 10px 0;
+            color: #e91e63;
+        }
+        
+        .version-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .version-item {
+            padding: 8px;
+            margin: 5px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .version-item.current {
+            background: rgba(233, 30, 99, 0.1);
+            border-left: 3px solid #e91e63;
+        }
+        
+        .version-item.new {
+            animation: highlight 2s ease-out;
+        }
+        
+        .version-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .version-file {
+            font-weight: bold;
+            color: #e91e63;
+        }
+        
+        .version-time {
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        @keyframes highlight {
+            0% { background: rgba(233, 30, 99, 0.2); }
+            100% { background: rgba(255, 255, 255, 0.05); }
+        }
+    </style>
 </body>
 </html> 
