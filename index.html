@@ -64,19 +64,19 @@
                 <div class="social-links">
                     <h3 data-translate="connect">Kết nối với mình nhé! 💕</h3>
                     <div class="social-icons">
-                        <a href="#" class="social-icon" title="Facebook">
+                        <a href="#" class="social-icon" title="Facebook" data-social="facebook" target="_blank">
                             <i class="fab fa-facebook"></i>
                         </a>
-                        <a href="#" class="social-icon" title="Instagram">
+                        <a href="#" class="social-icon" title="Instagram" data-social="instagram" target="_blank">
                             <i class="fab fa-instagram"></i>
                         </a>
-                        <a href="#" class="social-icon phone-icon" title="Số điện thoại" id="showPhoneBtn">
+                        <a href="javascript:void(0);" class="social-icon phone-icon" title="Số điện thoại" id="showPhoneBtn">
                             <i class="fas fa-phone"></i>
                         </a>
-                        <a href="#" class="social-icon" title="TikTok">
+                        <a href="#" class="social-icon" title="TikTok" data-social="tiktok" target="_blank">
                             <i class="fab fa-tiktok"></i>
                         </a>
-                        <a href="#" class="social-icon locket-icon" title="Locket">
+                        <a href="#" class="social-icon locket-icon" title="Locket" data-social="locket" target="_blank">
                             <i class="fas fa-heart"></i>
                         </a>
                     </div>
@@ -137,27 +137,74 @@
         </div>
     </div>
     <script>
+        // Profile data cache
+        let profileData = {};
+
         // Load profile data from API
         async function loadProfileData() {
             try {
                 const response = await fetch('http://localhost:8081/api.php');
                 const data = await response.json();
                 if (data.profile) {
-                    document.querySelector('[data-translate="intro"]').innerHTML = `Mình là <span class="highlight">${data.profile.name}</span>`;
-                    document.querySelector('[data-translate="nickname"]').textContent = `(Hay còn được gọi là ${data.profile.nickname})`;
-                    document.querySelector('[data-translate="about-content"]').textContent = data.profile.about;
-                    document.querySelector('[data-translate="slogan"]').textContent = data.profile.slogan;
+                    profileData = data; // Cache the whole data object
+                    document.querySelector('[data-translate="intro"]').innerHTML = `Mình là <span class="highlight">${data.profile.name || 'Cún'}</span>`;
+                    document.querySelector('[data-translate="nickname"]').textContent = `(Hay còn được gọi là ${data.profile.nickname || 'Cún cute 😊'})`;
+                    document.querySelector('[data-translate="about-content"]').textContent = data.profile.about || 'Mình là một người yêu thích công nghệ và sáng tạo...';
+                    document.querySelector('[data-translate="slogan"]').textContent = data.profile.slogan || '"Hãy sống như một bông hoa..."';
 
                     const avatarImg = document.getElementById('profileAvatarImg');
                     if (data.profile.avatar_base64) {
                         avatarImg.src = data.profile.avatar_base64;
                     } else {
-                        // Set a default avatar if none is found
                         avatarImg.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=Cun&backgroundColor=b6e3f4';
                     }
+
+                    // Set social links
+                    const socialLinks = {
+                        facebook: data.profile.facebookLink,
+                        instagram: data.profile.instagramLink,
+                        tiktok: data.profile.tiktokLink,
+                        locket: data.profile.locketLink
+                    };
+
+                    document.querySelectorAll('.social-icon[data-social]').forEach(icon => {
+                        const socialName = icon.getAttribute('data-social');
+                        if (socialLinks[socialName]) {
+                            icon.href = socialLinks[socialName];
+                        } else {
+                            icon.href = 'javascript:void(0);'; // Make non-clickable or style differently
+                            icon.style.opacity = '0.5'; // Example: visually indicate no link
+                            icon.title = `${socialName.charAt(0).toUpperCase() + socialName.slice(1)} (Chưa có link)`;
+                        }
+                    });
+
+                } else {
+                    console.error("Profile data not found in API response");
+                    // Set defaults if profile is empty
+                    document.querySelector('[data-translate="intro"]').innerHTML = `Mình là <span class="highlight">Cún</span>`;
+                    document.querySelector('[data-translate="nickname"]').textContent = `(Hay còn được gọi là Cún cute 😊)`;
+                    document.querySelector('[data-translate="about-content"]').textContent = 'Mình là một người yêu thích công nghệ và sáng tạo. Mình thích khám phá những điều mới mẻ, đọc sách và nghe nhạc. Mình luôn cố gắng sống tích cực và lan tỏa năng lượng tốt đến mọi người xung quanh.';
+                    document.querySelector('[data-translate="slogan"]').textContent = '"Hãy sống như một bông hoa, tỏa hương thơm ngát cho đời 🌸"';
+                    document.querySelectorAll('.social-icon[data-social]').forEach(icon => {
+                        icon.href = 'javascript:void(0);';
+                        icon.style.opacity = '0.5';
+                        const socialName = icon.getAttribute('data-social');
+                        icon.title = `${socialName.charAt(0).toUpperCase() + socialName.slice(1)} (Chưa có link)`;
+                    });
                 }
             } catch (error) {
                 console.error('Error loading profile:', error);
+                // Handle error: display default text or a message to the user
+                document.querySelector('[data-translate="intro"]').innerHTML = `Mình là <span class="highlight">Cún</span>`;
+                document.querySelector('[data-translate="nickname"]').textContent = `(Hay còn được gọi là Cún cute 😊)`;
+                document.querySelector('[data-translate="about-content"]').textContent = 'Lỗi khi tải thông tin cá nhân. Vui lòng thử lại sau.';
+                document.querySelector('[data-translate="slogan"]').textContent = '---';
+                 document.querySelectorAll('.social-icon[data-social]').forEach(icon => {
+                        icon.href = 'javascript:void(0);';
+                        icon.style.opacity = '0.5';
+                        const socialName = icon.getAttribute('data-social');
+                        icon.title = `${socialName.charAt(0).toUpperCase() + socialName.slice(1)} (Lỗi tải)`;
+                    });
             }
         }
 

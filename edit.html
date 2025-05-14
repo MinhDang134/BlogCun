@@ -466,6 +466,20 @@
         .close-suggestions:hover {
             color: #e91e63;
         }
+
+        /* Styles for Social Media Link Management in edit.html */
+        .social-links-management {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px dashed #ffe0ef;
+        }
+        .social-links-management label {
+            display: block;
+            color: #e91e63;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
@@ -517,6 +531,27 @@
                             <i class="fas fa-quote-right"></i>
                         </button>
                     </div>
+                </div>
+            </div>
+
+            <div class="form-group social-links-management">
+                <label>Liên kết mạng xã hội</label>
+                <div class="social-icons">
+                    <button type="button" class="social-icon" data-social="facebook" title="Chỉnh sửa link Facebook">
+                        <i class="fab fa-facebook"></i>
+                    </button>
+                    <button type="button" class="social-icon" data-social="instagram" title="Chỉnh sửa link Instagram">
+                        <i class="fab fa-instagram"></i>
+                    </button>
+                    <button type="button" class="social-icon phone-icon" data-social="phone" title="Chỉnh sửa số điện thoại">
+                        <i class="fas fa-phone"></i>
+                    </button>
+                    <button type="button" class="social-icon" data-social="tiktok" title="Chỉnh sửa link TikTok">
+                        <i class="fab fa-tiktok"></i>
+                    </button>
+                    <button type="button" class="social-icon locket-icon" data-social="locket" title="Chỉnh sửa link Locket">
+                        <i class="fas fa-heart"></i>
+                    </button>
                 </div>
             </div>
 
@@ -817,6 +852,14 @@
             if (e.target === suggestionsDialog) {
                 suggestionsDialog.classList.remove('show');
             }
+        });
+
+        // Event listeners for social edit buttons (for edit.html)
+        document.querySelectorAll('.social-icon[data-social]').forEach(button => {
+            button.addEventListener('click', () => {
+                const social = button.getAttribute('data-social');
+                openSocialLinkDialog_edit(social);
+            });
         });
     </script>
 </body>
