@@ -481,7 +481,8 @@
                     <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Cun&backgroundColor=b6e3f4" alt="Avatar" id="avatarImg">
                 </div>
                 <div class="avatar-decoration"></div>
-                <button class="change-avatar-btn" id="changeAvatarBtn">
+                <input type="file" id="avatarUploadInput" accept="image/jpeg, image/png, image/gif, image/webp" style="display: none;">
+                <button class="change-avatar-btn" id="changeAvatarBtn" title="Tải ảnh đại diện">
                     <i class="fas fa-camera"></i>
                 </button>
             </div>
@@ -553,15 +554,21 @@
 
     <script>
         // Load data from API
+        let currentAvatarBase64 = null; // Variable to store the current avatar as Base64
+
         window.onload = async function() {
             try {
-                const response = await fetch('http://localhost:8080/api.php');
+                const response = await fetch('http://localhost:8081/api.php');
                 const data = await response.json();
                 if (data.profile) {
                     document.getElementById('editName').value = data.profile.name;
                     document.getElementById('editNickname').value = data.profile.nickname;
                     document.getElementById('editAbout').value = data.profile.about;
                     document.getElementById('editSlogan').value = data.profile.slogan;
+                    if (data.profile.avatar_base64) {
+                        currentAvatarBase64 = data.profile.avatar_base64;
+                        document.getElementById('avatarImg').src = currentAvatarBase64;
+                    }
                 }
             } catch (error) {
                 console.error('Error loading profile:', error);
@@ -578,9 +585,12 @@
                     slogan: document.getElementById('editSlogan').value
                 }
             };
+            if (currentAvatarBase64) {
+                profileData.profile.avatar_base64 = currentAvatarBase64;
+            }
 
             try {
-                const response = await fetch('http://localhost:8080/api.php', {
+                const response = await fetch('http://localhost:8081/api.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -620,6 +630,7 @@
 
         const styleGrid = document.getElementById('styleGrid');
         const avatarImg = document.getElementById('avatarImg');
+        const avatarUploadInput = document.getElementById('avatarUploadInput');
 
         styles.forEach(style => {
             const div = document.createElement('div');
@@ -644,8 +655,25 @@
         const closeStyles = document.getElementById('closeStyles');
 
         changeAvatarBtn.addEventListener('click', () => {
-            avatarStyles.classList.add('show');
-            avatarOverlay.classList.add('show');
+            avatarUploadInput.click(); // Open file dialog
+        });
+
+        avatarUploadInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                    alert("Kích thước tệp quá lớn! Vui lòng chọn tệp nhỏ hơn 5MB.");
+                    avatarUploadInput.value = ""; // Reset file input
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentAvatarBase64 = e.target.result;
+                    avatarImg.src = currentAvatarBase64;
+                    // Optionally, immediately save or indicate unsaved change
+                }
+                reader.readAsDataURL(file);
+            }
         });
 
         closeStyles.addEventListener('click', hideAvatarDialog);

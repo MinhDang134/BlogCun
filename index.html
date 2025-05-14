@@ -42,7 +42,7 @@
             <div class="profile-header">
                 <div class="avatar-container">
                     <div class="avatar">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Cun&backgroundColor=b6e3f4" alt="Avatar">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Cun&backgroundColor=b6e3f4" alt="Avatar" id="profileAvatarImg">
                     </div>
                     <div class="avatar-decoration"></div>
                 </div>
@@ -140,13 +140,21 @@
         // Load profile data from API
         async function loadProfileData() {
             try {
-                const response = await fetch('http://localhost:8080/api.php');
+                const response = await fetch('http://localhost:8081/api.php');
                 const data = await response.json();
                 if (data.profile) {
                     document.querySelector('[data-translate="intro"]').innerHTML = `Mình là <span class="highlight">${data.profile.name}</span>`;
                     document.querySelector('[data-translate="nickname"]').textContent = `(Hay còn được gọi là ${data.profile.nickname})`;
                     document.querySelector('[data-translate="about-content"]').textContent = data.profile.about;
                     document.querySelector('[data-translate="slogan"]').textContent = data.profile.slogan;
+
+                    const avatarImg = document.getElementById('profileAvatarImg');
+                    if (data.profile.avatar_base64) {
+                        avatarImg.src = data.profile.avatar_base64;
+                    } else {
+                        // Set a default avatar if none is found
+                        avatarImg.src = 'https://api.dicebear.com/7.x/avataaars/svg?seed=Cun&backgroundColor=b6e3f4';
+                    }
                 }
             } catch (error) {
                 console.error('Error loading profile:', error);
