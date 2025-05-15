@@ -169,12 +169,35 @@
 
                     document.querySelectorAll('.social-icon[data-social]').forEach(icon => {
                         const socialName = icon.getAttribute('data-social');
-                        if (socialLinks[socialName]) {
-                            icon.href = socialLinks[socialName];
+                        if (socialName === 'phone') {
+                            // Xử lý riêng cho phone
+                            icon.removeAttribute('href');
+                            icon.style.opacity = data.profile.phone ? '1' : '0.5';
+                            icon.title = data.profile.phone ? `Số điện thoại: ${data.profile.phone}` : 'Chưa có số điện thoại';
+                            icon.onclick = function(e) {
+                                e.preventDefault();
+                                if (data.profile.phone) {
+                                    // Hiện dialog số điện thoại
+                                    document.getElementById('phoneNumber').textContent = data.profile.phone;
+                                    document.getElementById('phoneRevealOverlay').style.display = 'flex';
+                                    setTimeout(() => {
+                                        document.getElementById('phoneNumber').classList.add('reveal-anim');
+                                    }, 100);
+                                } else {
+                                    alert('Chưa có số điện thoại!');
+                                }
+                            };
                         } else {
-                            icon.href = 'javascript:void(0);'; // Make non-clickable or style differently
-                            icon.style.opacity = '0.5'; // Example: visually indicate no link
-                            icon.title = `${socialName.charAt(0).toUpperCase() + socialName.slice(1)} (Chưa có link)`;
+                            if (socialLinks[socialName]) {
+                                icon.href = socialLinks[socialName];
+                                icon.style.opacity = '1';
+                                icon.title = socialName.charAt(0).toUpperCase() + socialName.slice(1);
+                            } else {
+                                icon.href = 'javascript:void(0);';
+                                icon.style.opacity = '0.5';
+                                icon.title = `${socialName.charAt(0).toUpperCase() + socialName.slice(1)} (Chưa có link)`;
+                            }
+                            icon.onclick = null;
                         }
                     });
 

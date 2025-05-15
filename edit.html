@@ -626,8 +626,10 @@
             }
         };
 
-        // Save data to API
+        // Save data to API (Lưu thông tin cá nhân)
         document.getElementById('saveProfileBtn').onclick = async function() {
+            // Lấy dữ liệu cũ nếu có
+            let oldProfile = (window.profileData && window.profileData.profile) ? window.profileData.profile : {};
             const profileData = {
                 profile: {
                     name: document.getElementById('editName').value,
@@ -638,8 +640,14 @@
             };
             if (currentAvatarBase64) {
                 profileData.profile.avatar_base64 = currentAvatarBase64;
+            } else if (oldProfile.avatar_base64) {
+                profileData.profile.avatar_base64 = oldProfile.avatar_base64;
             }
-
+            // Giữ lại các trường mạng xã hội cũ
+            ['facebookLink', 'instagramLink', 'tiktokLink', 'locketLink', 'phone'].forEach(key => {
+                if (oldProfile[key] !== undefined) profileData.profile[key] = oldProfile[key];
+            });
+            window.profileData = profileData; // Cập nhật lại biến toàn cục
             try {
                 const response = await fetch('http://localhost:8081/api.php', {
                     method: 'POST',
@@ -649,7 +657,6 @@
                     body: JSON.stringify(profileData)
                 });
                 const result = await response.json();
-                
                 if (result.success) {
                     document.getElementById('saveMessage').textContent = 'Đã lưu thông tin thành công! ✨';
                     setTimeout(() => {
@@ -917,6 +924,7 @@
         };
         saveSocialLinkBtn.onclick = async function() {
             if (!window.profileData) window.profileData = { profile: {} };
+            if (!window.profileData.profile) window.profileData.profile = {};
             const meta = socialMeta[currentSocialEditing];
             const value = socialLinkInput.value.trim();
             if (!value) {
@@ -924,7 +932,14 @@
                 return;
             }
             window.profileData.profile[meta.key] = value;
-            // Gọi API lưu
+            // Giữ lại các trường cá nhân cũ
+            ['name', 'nickname', 'about', 'slogan', 'avatar_base64'].forEach(key => {
+                if (document.getElementById('edit' + key.charAt(0).toUpperCase() + key.slice(1))) {
+                    window.profileData.profile[key] = document.getElementById('edit' + key.charAt(0).toUpperCase() + key.slice(1)).value;
+                } else if (window.profileData.profile[key] === undefined) {
+                    window.profileData.profile[key] = '';
+                }
+            });
             try {
                 const response = await fetch('http://localhost:8081/api.php', {
                     method: 'POST',
