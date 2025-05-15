@@ -587,6 +587,22 @@
         </div>
     </div>
 
+    <!-- Social Link Cute Dialog -->
+    <div class="cute-dialog-overlay" id="socialLinkDialogOverlay" style="display:none;">
+        <div class="cute-dialog social-link-dialog">
+            <span class="dialog-decor decor-heart">💖</span>
+            <span class="dialog-decor decor-star">✨</span>
+            <span class="dialog-decor decor-flower">🌸</span>
+            <button class="close-dialog" id="closeSocialLinkDialogBtn">×</button>
+            <h2 id="socialDialogTitle"><i class="fab fa-facebook"></i>Nhập link Facebook</h2>
+            <input type="url" id="socialLinkInput" placeholder="Dán link mạng xã hội..." />
+            <div class="social-link-dialog-buttons">
+                <button class="submit-pass-btn" id="saveSocialLinkBtn">Lưu 💖</button>
+            </div>
+            <div class="dialog-message" id="socialLinkDialogMessage"></div>
+        </div>
+    </div>
+
     <script>
         // Load data from API
         let currentAvatarBase64 = null; // Variable to store the current avatar as Base64
@@ -857,11 +873,77 @@
 
         // Event listeners for social edit buttons (for edit.html)
         document.querySelectorAll('.social-icon[data-social]').forEach(button => {
-            button.addEventListener('click', () => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault(); // Ngăn reload/mở lại trang khi click icon
                 const social = button.getAttribute('data-social');
                 openSocialLinkDialog_edit(social);
             });
         });
+
+        // Social link dialog logic
+        const socialLinkDialogOverlay = document.getElementById('socialLinkDialogOverlay');
+        const closeSocialLinkDialogBtn = document.getElementById('closeSocialLinkDialogBtn');
+        const socialDialogTitle = document.getElementById('socialDialogTitle');
+        const socialLinkInput = document.getElementById('socialLinkInput');
+        const saveSocialLinkBtn = document.getElementById('saveSocialLinkBtn');
+        const socialLinkDialogMessage = document.getElementById('socialLinkDialogMessage');
+        let currentSocialEditing = null;
+
+        const socialMeta = {
+            facebook: { icon: 'fab fa-facebook', label: 'Facebook', key: 'facebookLink' },
+            instagram: { icon: 'fab fa-instagram', label: 'Instagram', key: 'instagramLink' },
+            tiktok: { icon: 'fab fa-tiktok', label: 'TikTok', key: 'tiktokLink' },
+            locket: { icon: 'fas fa-heart', label: 'Locket', key: 'locketLink' },
+            phone: { icon: 'fas fa-phone', label: 'Số điện thoại', key: 'phone' }
+        };
+
+        function openSocialLinkDialog_edit(social) {
+            currentSocialEditing = social;
+            const meta = socialMeta[social];
+            socialDialogTitle.innerHTML = `<i class='${meta.icon}'></i>Nhập link ${meta.label}`;
+            socialLinkInput.type = (social === 'phone') ? 'text' : 'url';
+            socialLinkInput.placeholder = (social === 'phone') ? 'Nhập số điện thoại...' : 'Dán link mạng xã hội...';
+            socialLinkInput.value = (window.profileData && window.profileData.profile && window.profileData.profile[meta.key]) ? window.profileData.profile[meta.key] : '';
+            socialLinkDialogMessage.textContent = '';
+            socialLinkDialogOverlay.style.display = 'flex';
+            setTimeout(() => socialLinkInput.focus(), 200);
+        }
+
+        closeSocialLinkDialogBtn.onclick = function() {
+            socialLinkDialogOverlay.style.display = 'none';
+        };
+        socialLinkDialogOverlay.onclick = function(e) {
+            if (e.target === socialLinkDialogOverlay) socialLinkDialogOverlay.style.display = 'none';
+        };
+        saveSocialLinkBtn.onclick = async function() {
+            if (!window.profileData) window.profileData = { profile: {} };
+            const meta = socialMeta[currentSocialEditing];
+            const value = socialLinkInput.value.trim();
+            if (!value) {
+                socialLinkDialogMessage.textContent = 'Vui lòng nhập thông tin!';
+                return;
+            }
+            window.profileData.profile[meta.key] = value;
+            // Gọi API lưu
+            try {
+                const response = await fetch('http://localhost:8081/api.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(window.profileData)
+                });
+                const result = await response.json();
+                if (result.success) {
+                    socialLinkDialogMessage.textContent = 'Đã lưu thành công!';
+                    setTimeout(() => {
+                        socialLinkDialogOverlay.style.display = 'none';
+                    }, 800);
+                } else {
+                    socialLinkDialogMessage.textContent = 'Có lỗi khi lưu!';
+                }
+            } catch (e) {
+                socialLinkDialogMessage.textContent = 'Có lỗi khi lưu!';
+            }
+        };
     </script>
 </body>
 </html> 
