@@ -1,108 +1,90 @@
-import psycopg2
-from psycopg2.extras import RealDictCursor
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
 import json
+
+# Tạo engine kết nối PostgreSQL
+engine = create_engine('postgresql://minhdangpy134:minhdang@localhost:5432/blogcuniu')
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
 
 class Database:
     def __init__(self):
-        self.conn = None
-        self.connect()
-
-    def connect(self):
-        try:
-            self.conn = psycopg2.connect(
-                host="localhost",
-                port="5432",
-                database="blogcuniu",
-                user="minhdangpy134",
-                password="minhdang"  # Thay đổi password của bạn ở đây
-            )
-            self.create_tables()
-        except Exception as e:
-            print(f"Lỗi kết nối database: {e}")
-            raise e
-
-    def create_tables(self):
-        try:
-            with self.conn.cursor() as cur:
-                cur.execute("""
-                    CREATE TABLE IF NOT EXISTS profile (
-                        id SERIAL PRIMARY KEY,
-                        name TEXT,
-                        nickname TEXT,
-                        about TEXT,
-                        slogan TEXT,
-                        facebook_link TEXT,
-                        instagram_link TEXT,
-                        tiktok_link TEXT,
-                        locket_link TEXT,
-                        phone TEXT
-                    )
-                """)
-                self.conn.commit()
-        except Exception as e:
-            print(f"Lỗi tạo bảng: {e}")
-            raise e
-
-    def get_profile(self):
-        try:
-            with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
-                cur.execute("SELECT * FROM profile WHERE id = 1")
-                row = cur.fetchone()
-                
-                if row:
-                    # Chuyển đổi snake_case sang camelCase
-                    profile = {}
-                    for k, v in row.items():
-                        key = ''.join(word.capitalize() if i else word.lower() 
-                                    for i, word in enumerate(k.split('_')))
-                        profile[key] = v
-                    return profile
-                return {}
-        except Exception as e:
-            print(f"Lỗi lấy profile: {e}")
-            raise e
+        self.engine = engine
+        self.SessionLocal = SessionLocal
 
     def save_profile(self, profile_data):
-        try:
-            # Chuyển đổi camelCase sang snake_case
-            data = {}
-            for k, v in profile_data.items():
-                key = ''.join(['_' + c.lower() if c.isupper() else c for c in k]).lstrip('_')
-                data[key] = v
+        with self.SessionLocal() as session:
+            # Chuyển đổi tên trường từ camelCase sang snake_case
+            db_profile = {
+                'name': profile_data.get('name', ''),
+                'nickname': profile_data.get('nickname', ''),
+                'about': profile_data.get('about', ''),
+                'slogan': profile_data.get('slogan', ''),
+                'facebook_link': profile_data.get('facebookLink', ''),
+                'instagram_link': profile_data.get('instagramLink', ''),
+                'tiktok_link': profile_data.get('tiktokLink', ''),
+                'locket_link': profile_data.get('locketLink', ''),
+                'phone': profile_data.get('phone', ''),
+                'avatar_base64': profile_data.get('avatar_base64', '')
+            }
+            
+            # Kiểm tra xem đã có profile chưa
+            result = session.execute(text("SELECT id FROM profile LIMIT 1"))
+            profile = result.fetchone()
+            
+            if profile:
+                # Update profile hiện tại
+                session.execute(
+                    text("""
+                        UPDATE profile 
+                        SET name = :name,
+                            nickname = :nickname,
+                            about = :about,
+                            slogan = :slogan,
+                            facebook_link = :facebook_link,
+                            instagram_link = :instagram_link,
+                            tiktok_link = :tiktok_link,
+                            locket_link = :locket_link,
+                            phone = :phone,
+                            avatar_base64 = :avatar_base64
+                        WHERE id = :id
+                    """),
+                    {**db_profile, 'id': profile[0]}
+                )
+            else:
+                # Tạo profile mới
+                session.execute(
+                    text("""
+                        INSERT INTO profile 
+                        (name, nickname, about, slogan, facebook_link, instagram_link, tiktok_link, locket_link, phone, avatar_base64)
+                        VALUES 
+                        (:name, :nickname, :about, :slogan, :facebook_link, :instagram_link, :tiktok_link, :locket_link, :phone, :avatar_base64)
+                    """),
+                    db_profile
+                )
+            
+            session.commit()
 
-            with self.conn.cursor() as cur:
-                cur.execute("""
-                    INSERT INTO profile (id, name, nickname, about, slogan, 
-                                       facebook_link, instagram_link, tiktok_link, 
-                                       locket_link, phone)
-                    VALUES (1, %(name)s, %(nickname)s, %(about)s, %(slogan)s,
-                            %(facebook_link)s, %(instagram_link)s, %(tiktok_link)s,
-                            %(locket_link)s, %(phone)s)
-                    ON CONFLICT (id) DO UPDATE SET
-                        name = %(name)s,
-                        nickname = %(nickname)s,
-                        about = %(about)s,
-                        slogan = %(slogan)s,
-                        facebook_link = %(facebook_link)s,
-                        instagram_link = %(instagram_link)s,
-                        tiktok_link = %(tiktok_link)s,
-                        locket_link = %(locket_link)s,
-                        phone = %(phone)s
-                """, data)
-                self.conn.commit()
-
-            # Ghi ra file database.json
-            with open('database.json', 'w', encoding='utf-8') as f:
-                json.dump({'profile': profile_data}, f, ensure_ascii=False, indent=4)
-
-            return True
-        except Exception as e:
-            print(f"Lỗi lưu profile: {e}")
-            raise e
-
-    def close(self):
-        if self.conn:
-            self.conn.close()
+    def get_profile(self):
+        with self.SessionLocal() as session:
+            result = session.execute(text("SELECT * FROM profile LIMIT 1"))
+            profile = result.fetchone()
+            
+            if profile:
+                return {
+                    'name': profile[1],
+                    'nickname': profile[2],
+                    'about': profile[3],
+                    'slogan': profile[4],
+                    'facebookLink': profile[5],
+                    'instagramLink': profile[6],
+                    'tiktokLink': profile[7],
+                    'locketLink': profile[8],
+                    'phone': profile[9],
+                    'avatar_base64': profile[10] if len(profile) > 10 else ''
+                }
+            return None
 
 # Sử dụng:
 if __name__ == "__main__":
@@ -127,4 +109,4 @@ if __name__ == "__main__":
         db.save_profile(test_profile)
         print("Đã lưu profile thành công!")
     finally:
-        db.close() 
+        pass 

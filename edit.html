@@ -657,7 +657,8 @@
                 instagramLink: document.getElementById('instagramLink').value,
                 tiktokLink: document.getElementById('tiktokLink').value,
                 locketLink: document.getElementById('locketLink').value,
-                phone: document.getElementById('phone').value
+                phone: document.getElementById('phone').value,
+                avatar_base64: currentAvatarBase64 || document.getElementById('avatarImg').src
             };
             try {
                 const response = await fetch('http://127.0.0.1:8000/profile', {
