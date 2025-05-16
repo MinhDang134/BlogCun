@@ -550,26 +550,6 @@
                 <label for="phone">Số điện thoại</label>
                 <input type="text" id="phone" class="edit-input" placeholder="Số điện thoại...">
             </div>
-            <div class="form-group social-links-management">
-                <h3 style="text-align:center; color:#333; font-weight:600; margin-bottom:15px;">Kết nối với mình nhé! <span style='font-size:1.1em;'>💕</span></h3>
-                <div class="social-icons">
-                    <a href="#" class="social-icon" title="Facebook" data-social="facebook" target="_blank">
-                        <i class="fab fa-facebook"></i>
-                    </a>
-                    <a href="#" class="social-icon" title="Instagram" data-social="instagram" target="_blank">
-                        <i class="fab fa-instagram"></i>
-                    </a>
-                    <a href="javascript:void(0);" class="social-icon phone-icon" title="Số điện thoại" data-social="phone">
-                        <i class="fas fa-phone"></i>
-                    </a>
-                    <a href="#" class="social-icon" title="TikTok" data-social="tiktok" target="_blank">
-                        <i class="fab fa-tiktok"></i>
-                    </a>
-                    <a href="#" class="social-icon locket-icon" title="Locket" data-social="locket" target="_blank">
-                        <i class="fas fa-heart"></i>
-                    </a>
-                </div>
-            </div>
             <div class="button-group">
                 <button type="button" class="save-btn" id="saveProfileBtn">
                     <i class="fas fa-save"></i>
@@ -815,14 +795,14 @@
             `;
             document.head.appendChild(style);
 
-            // Add click event for emojis
+            // Add click event for emojis (KHÔNG đóng dialog khi chọn emoji)
             emojiDialog.querySelectorAll('.emoji-item').forEach(item => {
-                item.addEventListener('click', function() {
+                item.addEventListener('click', function(e) {
+                    e.stopPropagation(); // Ngăn đóng dialog khi click emoji
                     const cursorPos = editSlogan.selectionStart;
                     const text = editSlogan.value;
                     editSlogan.value = text.slice(0, cursorPos) + this.textContent + text.slice(cursorPos);
-                    document.body.removeChild(emojiDialog);
-                    document.head.removeChild(style);
+                    // KHÔNG đóng dialog ở đây!
                 });
             });
 

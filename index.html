@@ -143,7 +143,7 @@
         // Load profile data from API
         async function loadProfileData() {
             try {
-                const response = await fetch('http://localhost:8081/api.php');
+                const response = await fetch('http://127.0.0.1:8000/profile');
                 const data = await response.json();
                 if (data.profile) {
                     profileData = data; // Cache the whole data object
@@ -376,8 +376,20 @@
         const closePhoneDialogBtn = document.getElementById('closePhoneDialogBtn');
         const phoneNumber = document.getElementById('phoneNumber');
 
-        showPhoneBtn.addEventListener('click', (e) => {
+        showPhoneBtn.addEventListener('click', async (e) => {
             e.preventDefault();
+            // Lấy số điện thoại mới nhất từ API mỗi lần mở dialog
+            try {
+                const response = await fetch('http://127.0.0.1:8000/profile');
+                const data = await response.json();
+                if (data.profile && data.profile.phone) {
+                    document.getElementById('phoneNumber').textContent = data.profile.phone;
+                } else {
+                    document.getElementById('phoneNumber').textContent = 'Chưa có số điện thoại!';
+                }
+            } catch {
+                document.getElementById('phoneNumber').textContent = 'Lỗi tải số điện thoại!';
+            }
             cuteDialogOverlay.style.display = 'flex';
             phonePassInput.value = '';
             dialogMessage.textContent = '';

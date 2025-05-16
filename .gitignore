@@ -1,6 +1,77 @@
-# Bỏ qua thư mục versions và tất cả các file JSON trong đó
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environment
+.venv/
+venv/
+ENV/
+env/
+
+# FastAPI/Starlette
+instance/
+.webassets-cache
+
+# Database
+*.sqlite
+*.sqlite3
+database.json
+*.db
+*.bak
+*.sql
+
+# PostgreSQL dump
+*.dump
+*.backup
+
+# Log files
+*.log
+
+# Editor/IDE
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+
+# Node
+node_modules/
+
+# Env
+.env
+.env.*
+
+# Backup/versions
 versions/
-*.json
+
+# System
+Thumbs.db
+
+# Others
+*.orig
+*.tmp
+*.temp
+
+# OS generated
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Jupyter
+.ipynb_checkpoints/
 
 # Bỏ qua các file hệ thống
 .DS_Store
