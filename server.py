@@ -82,7 +82,7 @@ class APIHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
 if __name__ == '__main__':
-    server_address = ('', 8081)
+    server_address = ('', 8082)
     httpd = HTTPServer(server_address, APIHandler)
-    print('Server running on port 8081...')
+    print('Server running on port 8082...')
     httpd.serve_forever() 

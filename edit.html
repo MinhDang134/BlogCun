@@ -508,17 +508,14 @@
                 <label for="editName">Tên của bạn</label>
                 <input type="text" id="editName" class="edit-input" placeholder="Nhập tên của bạn...">
             </div>
-
             <div class="form-group">
                 <label for="editNickname">Biệt danh</label>
                 <input type="text" id="editNickname" class="edit-input" placeholder="Nhập biệt danh của bạn..." autocomplete="off">
             </div>
-
             <div class="form-group">
                 <label for="editAbout">Giới thiệu về bản thân</label>
                 <textarea id="editAbout" class="edit-textarea" placeholder="Viết gì đó về bản thân bạn..."></textarea>
             </div>
-
             <div class="form-group">
                 <label for="editSlogan">Câu nói yêu thích</label>
                 <div class="slogan-input-group">
@@ -533,7 +530,26 @@
                     </div>
                 </div>
             </div>
-
+            <div class="form-group">
+                <label for="facebookLink">Facebook Link</label>
+                <input type="text" id="facebookLink" class="edit-input" placeholder="Facebook link...">
+            </div>
+            <div class="form-group">
+                <label for="instagramLink">Instagram Link</label>
+                <input type="text" id="instagramLink" class="edit-input" placeholder="Instagram link...">
+            </div>
+            <div class="form-group">
+                <label for="tiktokLink">TikTok Link</label>
+                <input type="text" id="tiktokLink" class="edit-input" placeholder="TikTok link...">
+            </div>
+            <div class="form-group">
+                <label for="locketLink">Locket Link</label>
+                <input type="text" id="locketLink" class="edit-input" placeholder="Locket link...">
+            </div>
+            <div class="form-group">
+                <label for="phone">Số điện thoại</label>
+                <input type="text" id="phone" class="edit-input" placeholder="Số điện thoại...">
+            </div>
             <div class="form-group social-links-management">
                 <h3 style="text-align:center; color:#333; font-weight:600; margin-bottom:15px;">Kết nối với mình nhé! <span style='font-size:1.1em;'>💕</span></h3>
                 <div class="social-icons">
@@ -554,7 +570,6 @@
                     </a>
                 </div>
             </div>
-
             <div class="button-group">
                 <button type="button" class="save-btn" id="saveProfileBtn">
                     <i class="fas fa-save"></i>
@@ -604,18 +619,23 @@
     </div>
 
     <script>
-        // Load data from API
+        // Load data from FastAPI
         let currentAvatarBase64 = null; // Variable to store the current avatar as Base64
 
         window.onload = async function() {
             try {
-                const response = await fetch('http://localhost:8081/api.php');
+                const response = await fetch('http://127.0.0.1:8000/profile');
                 const data = await response.json();
                 if (data.profile) {
-                    document.getElementById('editName').value = data.profile.name;
-                    document.getElementById('editNickname').value = data.profile.nickname;
-                    document.getElementById('editAbout').value = data.profile.about;
-                    document.getElementById('editSlogan').value = data.profile.slogan;
+                    document.getElementById('editName').value = data.profile.name || '';
+                    document.getElementById('editNickname').value = data.profile.nickname || '';
+                    document.getElementById('editAbout').value = data.profile.about || '';
+                    document.getElementById('editSlogan').value = data.profile.slogan || '';
+                    document.getElementById('facebookLink').value = data.profile.facebookLink || '';
+                    document.getElementById('instagramLink').value = data.profile.instagramLink || '';
+                    document.getElementById('tiktokLink').value = data.profile.tiktokLink || '';
+                    document.getElementById('locketLink').value = data.profile.locketLink || '';
+                    document.getElementById('phone').value = data.profile.phone || '';
                     if (data.profile.avatar_base64) {
                         currentAvatarBase64 = data.profile.avatar_base64;
                         document.getElementById('avatarImg').src = currentAvatarBase64;
@@ -626,34 +646,23 @@
             }
         };
 
-        // Save data to API (Lưu thông tin cá nhân)
+        // Save data to FastAPI (Lưu thông tin cá nhân)
         document.getElementById('saveProfileBtn').onclick = async function() {
-            // Lấy dữ liệu cũ nếu có
-            let oldProfile = (window.profileData && window.profileData.profile) ? window.profileData.profile : {};
             const profileData = {
-                profile: {
-                    name: document.getElementById('editName').value,
-                    nickname: document.getElementById('editNickname').value,
-                    about: document.getElementById('editAbout').value,
-                    slogan: document.getElementById('editSlogan').value
-                }
+                name: document.getElementById('editName').value,
+                nickname: document.getElementById('editNickname').value,
+                about: document.getElementById('editAbout').value,
+                slogan: document.getElementById('editSlogan').value,
+                facebookLink: document.getElementById('facebookLink').value,
+                instagramLink: document.getElementById('instagramLink').value,
+                tiktokLink: document.getElementById('tiktokLink').value,
+                locketLink: document.getElementById('locketLink').value,
+                phone: document.getElementById('phone').value
             };
-            if (currentAvatarBase64) {
-                profileData.profile.avatar_base64 = currentAvatarBase64;
-            } else if (oldProfile.avatar_base64) {
-                profileData.profile.avatar_base64 = oldProfile.avatar_base64;
-            }
-            // Giữ lại các trường mạng xã hội cũ
-            ['facebookLink', 'instagramLink', 'tiktokLink', 'locketLink', 'phone'].forEach(key => {
-                if (oldProfile[key] !== undefined) profileData.profile[key] = oldProfile[key];
-            });
-            window.profileData = profileData; // Cập nhật lại biến toàn cục
             try {
-                const response = await fetch('http://localhost:8081/api.php', {
+                const response = await fetch('http://127.0.0.1:8000/profile', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(profileData)
                 });
                 const result = await response.json();
@@ -931,8 +940,9 @@
                 socialLinkDialogMessage.textContent = 'Vui lòng nhập thông tin!';
                 return;
             }
+            // Cập nhật trường mới
             window.profileData.profile[meta.key] = value;
-            // Giữ lại các trường cá nhân cũ
+            // Giữ lại các trường cá nhân cũ (nếu có)
             ['name', 'nickname', 'about', 'slogan', 'avatar_base64'].forEach(key => {
                 if (document.getElementById('edit' + key.charAt(0).toUpperCase() + key.slice(1))) {
                     window.profileData.profile[key] = document.getElementById('edit' + key.charAt(0).toUpperCase() + key.slice(1)).value;
@@ -940,8 +950,9 @@
                     window.profileData.profile[key] = '';
                 }
             });
+            // Gửi toàn bộ profileData lên API
             try {
-                const response = await fetch('http://localhost:8081/api.php', {
+                const response = await fetch('http://127.0.0.1:8000/profile', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(window.profileData)
