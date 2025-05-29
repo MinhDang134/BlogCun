@@ -39,7 +39,7 @@ class Database:
                     text("""
                         UPDATE profile 
                         SET name = :name,
-                            nickname = :nickname,
+                            nickname = :nickname,   
                             about = :about,
                             slogan = :slogan,
                             facebook_link = :facebook_link,

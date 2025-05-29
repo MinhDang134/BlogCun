@@ -604,7 +604,7 @@
 
         window.onload = async function() {
             try {
-                const response = await fetch('http://127.0.0.1:8000/profile');
+                const response = await fetch('/profile');
                 const data = await response.json();
                 if (data.profile) {
                     document.getElementById('editName').value = data.profile.name || '';
@@ -641,7 +641,7 @@
                 avatar_base64: currentAvatarBase64 || document.getElementById('avatarImg').src
             };
             try {
-                const response = await fetch('http://127.0.0.1:8000/profile', {
+                const response = await fetch('/profile', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(profileData)
@@ -933,7 +933,7 @@
             });
             // Gửi toàn bộ profileData lên API
             try {
-                const response = await fetch('http://127.0.0.1:8000/profile', {
+                const response = await fetch('/profile', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(window.profileData)

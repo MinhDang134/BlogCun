@@ -143,7 +143,7 @@
         // Load profile data from API
         async function loadProfileData() {
             try {
-                const response = await fetch('http://127.0.0.1:8000/profile');
+                const response = await fetch('/profile');
                 const data = await response.json();
                 if (data.profile) {
                     profileData = data; // Cache the whole data object
@@ -380,7 +380,7 @@
             e.preventDefault();
             // Lấy số điện thoại mới nhất từ API mỗi lần mở dialog
             try {
-                const response = await fetch('http://127.0.0.1:8000/profile');
+                const response = await fetch('/profile');
                 const data = await response.json();
                 if (data.profile && data.profile.phone) {
                     document.getElementById('phoneNumber').textContent = data.profile.phone;
