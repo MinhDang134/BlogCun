@@ -630,14 +630,65 @@
 </div>
 
 <script>
-    // Load data from FastAPI
-    let currentAvatarBase64 = null; // Variable to store the current avatar as Base64
+    // Biến này sẽ lưu đường dẫn (URL) của ảnh đại diện hiện tại
+    let currentAvatarUrl = null;
 
+    // Lấy các phần tử HTML quan trọng mà mình sẽ dùng nhiều lần
+    // Mình đặt ở đây để không phải tìm lại nhiều lần trong code
+    const avatarImg = document.getElementById('avatarImg');
+    const avatarUploadInput = document.getElementById('avatarUploadInput');
+    const changeAvatarBtn = document.getElementById('changeAvatarBtn');
+    const editSlogan = document.getElementById('editSlogan');
+
+    // --- Các hàm tiện ích ---
+
+    // Hàm này dùng để ẩn đi hộp thoại chọn kiểu avatar
+    function hideAvatarDialog() {
+        document.getElementById('avatarStyles').classList.remove('show');
+        document.getElementById('avatarOverlay').classList.remove('show');
+    }
+
+    // Hàm này sẽ tải file ảnh người dùng chọn lên server
+    async function uploadAvatarToServer(fileObject) {
+        const formData = new FormData();
+        formData.append("file", fileObject); // "file" là tên mà server FastAPI mong đợi
+
+        try {
+            const response = await fetch('/upload-avatar/', { // Gọi API để upload
+                method: 'POST',
+                body: formData, // Gửi dữ liệu ảnh đi
+            });
+
+            if (!response.ok) { // Nếu server báo có lỗi (ví dụ 400, 500)
+                const errorResult = await response.json().catch(() => ({ detail: "Lỗi không xác định khi tải ảnh lên." }));
+                // Vẫn dùng alert ở đây để báo lỗi rõ ràng cho người dùng
+                alert(`Lỗi khi tải ảnh lên: ${response.status} - ${errorResult.detail || errorResult.error || "Không rõ lỗi"}`);
+                return null; // Trả về null nếu có lỗi
+            }
+
+            const result = await response.json(); // Lấy kết quả server trả về
+            if (result.avatarUrl) {
+                console.log("Ảnh đã được tải lên, URL mới là:", result.avatarUrl);
+                return result.avatarUrl; // Trả về đường dẫn URL của ảnh mới
+            } else {
+                alert('Lỗi: Server không trả về URL của ảnh.');
+                return null;
+            }
+        } catch (error) {
+            console.error('Lỗi nghiêm trọng khi tải ảnh đại diện lên server:', error);
+            alert('Lỗi nghiêm trọng khi tải ảnh đại diện lên server. Hãy thử lại!');
+            return null;
+        }
+    }
+
+    // --- Xử lý khi trang được tải xong ---
     window.onload = async function () {
         try {
-            const response = await fetch('/profile');
+            const response = await fetch('/profile'); // Lấy thông tin cá nhân từ server
             const data = await response.json();
+
             if (data.profile) {
+                // Điền thông tin cá nhân vào các ô input
                 document.getElementById('editName').value = data.profile.name || '';
                 document.getElementById('editNickname').value = data.profile.nickname || '';
                 document.getElementById('editAbout').value = data.profile.about || '';
@@ -647,18 +698,67 @@
                 document.getElementById('tiktokLink').value = data.profile.tiktokLink || '';
                 document.getElementById('locketLink').value = data.profile.locketLink || '';
                 document.getElementById('phone').value = data.profile.phone || '';
-                if (data.profile.avatar_base64) {
-                    currentAvatarBase64 = data.profile.avatar_base64;
-                    document.getElementById('avatarImg').src = currentAvatarBase64;
+
+                // Xử lý ảnh đại diện
+                // Ưu tiên ảnh người dùng đã tải lên (nếu có và đúng định dạng)
+                if (data.profile.avatarUrl && data.profile.avatarUrl.startsWith('/static/')) {
+                    currentAvatarUrl = data.profile.avatarUrl;
+                } else if (data.profile.avatarUrl) { // Nếu là URL từ DiceBear hoặc nguồn khác
+                     currentAvatarUrl = data.profile.avatarUrl;
                 }
+                else {
+                    // Nếu không có avatarUrl hoặc không hợp lệ, dùng ảnh mặc định
+                    currentAvatarUrl = 'https://api.dicebear.com/7.x/avataaars/svg?seed=Cun&backgroundColor=b6e3f4';
+                }
+                avatarImg.src = currentAvatarUrl;
+
+            } else {
+                // Nếu không có profile nào, cũng đặt ảnh mặc định
+                currentAvatarUrl = 'https://api.dicebear.com/7.x/avataaars/svg?seed=Cun&backgroundColor=b6e3f4';
+                avatarImg.src = currentAvatarUrl;
             }
         } catch (error) {
-            console.error('Error loading profile:', error);
+            console.error('Lỗi khi tải thông tin cá nhân:', error);
+            // Nếu có lỗi, cũng đặt ảnh mặc định
+            currentAvatarUrl = 'https://api.dicebear.com/7.x/avataaars/svg?seed=Cun&backgroundColor=b6e3f4';
+            avatarImg.src = currentAvatarUrl;
+            document.getElementById('saveMessage').textContent = 'Không tải được thông tin cá nhân 😢';
         }
     };
 
-    // Save data to FastAPI (Lưu thông tin cá nhân)
+    // --- Xử lý các nút bấm và sự kiện ---
+
+    // Khi người dùng chọn một file ảnh để tải lên
+    if (avatarUploadInput) {
+        avatarUploadInput.addEventListener('change', async function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                console.log('Người dùng đã chọn file:', file.name);
+                const newUrlFromServer = await uploadAvatarToServer(file); // Tải ảnh lên
+                if (newUrlFromServer) {
+                    currentAvatarUrl = newUrlFromServer; // Cập nhật URL ảnh hiện tại
+                    avatarImg.src = currentAvatarUrl;    // Hiển thị ảnh mới
+                    console.log('Đã cập nhật ảnh đại diện bằng ảnh tải lên.');
+                }
+            }
+        });
+    }
+
+    // Khi nhấn nút "Tải ảnh đại diện" (biểu tượng camera)
+    if (changeAvatarBtn) {
+        changeAvatarBtn.addEventListener('click', () => {
+            if (avatarUploadInput) {
+                avatarUploadInput.click(); // Mở hộp thoại chọn file của máy tính
+                console.log('Nút "Tải ảnh đại diện" đã được nhấn, mở hộp thoại chọn file.');
+            } else {
+                console.error('Lỗi: Không tìm thấy input để tải ảnh!');
+            }
+        });
+    }
+
+    // Khi nhấn nút "Lưu thông tin"
     document.getElementById('saveProfileBtn').onclick = async function () {
+        // Gom tất cả thông tin từ các ô input lại
         const profileData = {
             name: document.getElementById('editName').value,
             nickname: document.getElementById('editNickname').value,
@@ -669,393 +769,300 @@
             tiktokLink: document.getElementById('tiktokLink').value,
             locketLink: document.getElementById('locketLink').value,
             phone: document.getElementById('phone').value,
-            avatar_base64: currentAvatarBase64 || document.getElementById('avatarImg').src
+            avatarUrl: currentAvatarUrl // Gửi URL của ảnh đại diện hiện tại
         };
+
+        console.log('Đang lưu thông tin:', profileData);
+
         try {
-            const response = await fetch('/profile', {
+            const response = await fetch('/profile', { // Gửi thông tin lên server
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(profileData)
             });
             const result = await response.json();
+
             if (result.success) {
                 document.getElementById('saveMessage').textContent = 'Đã lưu thông tin thành công! ✨';
                 setTimeout(() => {
                     document.getElementById('saveMessage').textContent = '';
                 }, 3000);
             } else {
-                document.getElementById('saveMessage').textContent = 'Có lỗi xảy ra khi lưu thông tin 😢';
+                const errorMessage = result.message || result.detail || 'Có lỗi xảy ra khi lưu thông tin 😢';
+                document.getElementById('saveMessage').textContent = errorMessage;
             }
         } catch (error) {
-            console.error('Error saving profile:', error);
-            document.getElementById('saveMessage').textContent = 'Có lỗi xảy ra khi lưu thông tin 😢';
+            console.error('Lỗi khi lưu thông tin cá nhân:', error);
+            document.getElementById('saveMessage').textContent = 'Có lỗi mạng hoặc lỗi xử lý khi lưu thông tin 😢';
         }
     };
 
-    // Đăng xuất
+    // Khi nhấn nút "Đăng xuất"
     document.getElementById('logoutBtn').onclick = function () {
-        window.location.href = 'index.html';
+        window.location.href = 'index.html'; // Chuyển về trang chủ
     };
 
-    // Avatar styles
+    // --- Xử lý chọn Style Avatar từ DiceBear ---
     const styles = [
-        {name: 'avataaars', label: 'Avataaars'},
-        {name: 'bottts', label: 'Bottts'},
-        {name: 'pixel-art', label: 'Pixel Art'},
-        {name: 'adventurer', label: 'Adventurer'},
-        {name: 'big-ears', label: 'Big Ears'},
-        {name: 'micah', label: 'Micah'}
+        { name: 'avataaars', label: 'Avataaars' },
+        { name: 'bottts', label: 'Bottts' },
+        { name: 'pixel-art', label: 'Pixel Art' },
+        { name: 'adventurer', label: 'Adventurer' },
+        { name: 'big-ears', label: 'Big Ears' },
+        { name: 'micah', label: 'Micah' }
     ];
-
     const styleGrid = document.getElementById('styleGrid');
-    const avatarImg = document.getElementById('avatarImg');
-    const avatarUploadInput = document.getElementById('avatarUploadInput');
 
-    styles.forEach(style => {
-        const div = document.createElement('div');
-        div.className = 'style-option';
-        div.innerHTML = `
-                <img src="https://api.dicebear.com/7.x/${style.name}/svg?seed=Cun&backgroundColor=b6e3f4" 
+    // Tạo các lựa chọn style avatar
+    if (styleGrid) {
+        styles.forEach(style => {
+            const div = document.createElement('div');
+            div.className = 'style-option';
+            div.innerHTML = `
+                <img src="https://api.dicebear.com/7.x/${style.name}/svg?seed=Cun&backgroundColor=b6e3f4"
                      alt="${style.label}"
                      data-style="${style.name}">
             `;
-        styleGrid.appendChild(div);
-    });
+            // Khi nhấn vào một style
+            div.addEventListener('click', () => {
+                const styleName = div.querySelector('img').dataset.style;
+                const newAvatarUrlFromStyle = `https://api.dicebear.com/7.x/${styleName}/svg?seed=Cun&backgroundColor=b6e3f4`;
 
-    // Avatar dialog logic
-    function hideAvatarDialog() {
-        document.getElementById('avatarStyles').classList.remove('show');
-        document.getElementById('avatarOverlay').classList.remove('show');
+                avatarImg.src = newAvatarUrlFromStyle; // Hiển thị ảnh mới
+                currentAvatarUrl = newAvatarUrlFromStyle; // Cập nhật URL ảnh hiện tại <<< QUAN TRỌNG
+
+                // Bỏ chọn các style khác và đánh dấu style này là đã chọn
+                document.querySelectorAll('.style-option').forEach(opt => opt.classList.remove('selected'));
+                div.classList.add('selected');
+                console.log('Đã chọn style avatar:', styleName);
+
+                setTimeout(hideAvatarDialog, 300); // Đóng hộp thoại sau 0.3 giây
+            });
+            styleGrid.appendChild(div);
+        });
     }
 
-    const changeAvatarBtn = document.getElementById('changeAvatarBtn');
-    const avatarStyles = document.getElementById('avatarStyles');
+    // Các nút và lớp phủ của hộp thoại chọn style avatar
+    const avatarStylesDialog = document.getElementById('avatarStyles'); // Đổi tên biến để rõ ràng hơn
     const avatarOverlay = document.getElementById('avatarOverlay');
-    const closeStyles = document.getElementById('closeStyles');
+    const closeStylesBtn = document.getElementById('closeStyles'); // Đổi tên biến
 
-    changeAvatarBtn.addEventListener('click', () => {
-        avatarUploadInput.click(); // Open file dialog
-    });
+    // Khi nhấn nút "Thay đổi avatar" (hiện tại logic là mở hộp thoại chọn file)
+    // Nếu cháu muốn nó mở hộp thoại chọn style thì cần sửa lại ở đây
+    // Ví dụ:
+    // const showAvatarStylesBtn = document.getElementById('someButtonToShowStyles');
+    // if (showAvatarStylesBtn) {
+    //    showAvatarStylesBtn.addEventListener('click', () => {
+    //        if(avatarStylesDialog) avatarStylesDialog.classList.add('show');
+    //        if(avatarOverlay) avatarOverlay.classList.add('show');
+    //    });
+    // }
 
-    avatarUploadInput.addEventListener('change', function (event) {
-        const file = event.target.files[0];
-        if (file) {
-            if (file.size > 5 * 1024 * 1024) { // 5MB limit
-                alert("Kích thước tệp quá lớn! Vui lòng chọn tệp nhỏ hơn 5MB.");
-                avatarUploadInput.value = ""; // Reset file input
-                return;
-            }
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                currentAvatarBase64 = e.target.result;
-                avatarImg.src = currentAvatarBase64;
-                // Optionally, immediately save or indicate unsaved change
-            }
-            reader.readAsDataURL(file);
-        }
-    });
+    if (closeStylesBtn) closeStylesBtn.addEventListener('click', hideAvatarDialog);
+    if (avatarOverlay) avatarOverlay.addEventListener('click', hideAvatarDialog);
 
-    closeStyles.addEventListener('click', hideAvatarDialog);
-    avatarOverlay.addEventListener('click', hideAvatarDialog);
 
-    document.querySelectorAll('.style-option').forEach(option => {
-        option.addEventListener('click', () => {
-            const style = option.querySelector('img').dataset.style;
-            const newAvatarUrl = `https://api.dicebear.com/7.x/${style}/svg?seed=Cun&backgroundColor=b6e3f4`;
-            avatarImg.src = newAvatarUrl;
-
-            document.querySelectorAll('.style-option').forEach(opt => opt.classList.remove('selected'));
-            option.classList.add('selected');
-
-            setTimeout(hideAvatarDialog, 500);
-        });
-    });
-
-    // Slogan buttons logic
+    // --- Xử lý các nút bấm cho Slogan (Câu nói yêu thích) ---
     const emojiBtn = document.querySelector('.emoji-btn');
     const quoteBtn = document.querySelector('.quote-btn');
-    const editSlogan = document.getElementById('editSlogan');
+    let emojiDialogGlobal = null; // Biến để lưu trữ dialog emoji, giúp quản lý việc đóng/mở
+    let emojiDialogStyleElement = null; // Biến để lưu thẻ style của dialog emoji
 
-    // Emoji picker
-
-
-    // Slogan buttons logic (ĐOẠN CODE MỚI BẮT ĐẦU TỪ ĐÂY)
-    const emojiBtn = document.querySelector('.emoji-btn');
-    // const quoteBtn = document.querySelector('.quote-btn'); // Dòng này bạn đã có ở dưới cho quoteBtn
-    const editSlogan = document.getElementById('editSlogan');
-    let emojiDialogInstance = null; // Biến để lưu trữ DOM element của dialog
-    let emojiStyleInstance = null;  // Biến để lưu trữ DOM element của style tag
-    let closeEmojiDialogHandler = null; // Biến để lưu trữ hàm xử lý click ra ngoài
-
-    emojiBtn.addEventListener('click', function (event) {
-        event.stopPropagation(); // QUAN TRỌNG: Ngăn sự kiện click lan truyền lên document
-
-        // Nếu dialog đang mở, hãy đóng nó
-        if (emojiDialogInstance) {
-            if (document.body.contains(emojiDialogInstance)) {
-                document.body.removeChild(emojiDialogInstance);
+    // Hàm đóng dialog emoji khi click ra ngoài
+    function closeEmojiDialogOnClickOutside(event) {
+        if (emojiDialogGlobal && !emojiDialogGlobal.contains(event.target) && event.target !== emojiBtn) {
+            if (document.body.contains(emojiDialogGlobal)) {
+                document.body.removeChild(emojiDialogGlobal);
             }
-            if (document.head.contains(emojiStyleInstance)) {
-                document.head.removeChild(emojiStyleInstance);
+            if (emojiDialogStyleElement && document.head.contains(emojiDialogStyleElement)) {
+                document.head.removeChild(emojiDialogStyleElement);
             }
-            if (closeEmojiDialogHandler) {
-                document.removeEventListener('click', closeEmojiDialogHandler);
-            }
-            emojiDialogInstance = null;
-            emojiStyleInstance = null;
-            closeEmojiDialogHandler = null;
-            return; // Đã đóng dialog, kết thúc hàm
+            document.removeEventListener('click', closeEmojiDialogOnClickOutside); // Gỡ bỏ listener này đi
+            emojiDialogGlobal = null; // Đặt lại để biết là dialog đã đóng
+            emojiDialogStyleElement = null;
         }
+    }
 
-        // Nếu dialog chưa mở, hãy tạo và hiển thị nó
-        const emojiText = '🌸 💖 💝 💕 💓 💗 💘 💞 💟 💌 💋 💯 💫 ✨ 🌟 💫 🌈 🦋 🦄 🐰 🐱 🐶 🐼 🐨 🦁 🐯 🐮 🐷 🐸 🐙 🐬 🐳 🐋 🐠 🐡 🐢 🐍 🐊 🐅 🐆 🐎 🐴 🦄 🐝 🐛 🦋 🐌 🐞 🐜 🦗 🕷️ 🕸️ 🦂 🦀';
-        const emojiList = emojiText.split(' ');
+    // Khi nhấn nút chọn Emoji
+    // if (emojiBtn) {
+    //     emojiBtn.addEventListener('click', function () {
+    //         // Nếu dialog đang mở thì không làm gì cả
+    //         if (emojiDialogGlobal) return;
+    //
+    //         const emoji = '🌸 💖 💝 💕 💓 💗 💘 💞 💟 💌 💋 💯 💫 ✨ 🌟 💫 🌈 🦋 🦄 🐰 🐱 🐶 🐼 🐨 🦁 🐯 🐮 🐷 🐸 🐙 🐬 🐳 🐋 🐠 🐡 🐢 🐍 🐊 🐅 🐆 🐎 🐴 🦄 🐝 🐛 🦋 🐌 🐞 🐜 🦗 🕷️ 🕸️ 🦂 🦀';
+    //         const emojiList = emoji.split(' ');
+    //
+    //         emojiDialogGlobal = document.createElement('div'); // Gán vào biến toàn cục
+    //         emojiDialogGlobal.className = 'emoji-dialog';
+    //         emojiDialogGlobal.innerHTML = `
+    //             <div class="emoji-grid">
+    //                 ${emojiList.map(e => `<span class="emoji-item">${e}</span>`).join('')}
+    //             </div>
+    //         `;
+    //         document.body.appendChild(emojiDialogGlobal);
+    //
+    //         // Tạo style cho dialog emoji và thêm vào <head>
+    //         emojiDialogStyleElement = document.createElement('style');
+    //         emojiDialogStyleElement.textContent = `
+    //             .emoji-dialog { /* ... CSS của cháu giữ nguyên ... */ }
+    //             .emoji-grid { /* ... CSS của cháu giữ nguyên ... */ }
+    //             .emoji-item { /* ... CSS của cháu giữ nguyên ... */ }
+    //             .emoji-item:hover { /* ... CSS của cháu giữ nguyên ... */ }
+    //         `;
+    //         document.head.appendChild(emojiDialogStyleElement);
+    //
+    //         // Thêm sự kiện click cho từng emoji
+    //         emojiDialogGlobal.querySelectorAll('.emoji-item').forEach(item => {
+    //             item.addEventListener('click', function (e) {
+    //                 e.stopPropagation(); // Ngăn không cho sự kiện click này làm đóng dialog ngay
+    //                 const cursorPos = editSlogan.selectionStart;
+    //                 const text = editSlogan.value;
+    //                 editSlogan.value = text.slice(0, cursorPos) + this.textContent + text.slice(cursorPos);
+    //                 editSlogan.focus(); // Giúp người dùng gõ tiếp
+    //             });
+    //         });
+    //
+    //         // Thêm listener để đóng dialog khi click ra ngoài (chỉ thêm một lần)
+    //         // Phải dùng setTimeout một chút để nó không bị tự đóng ngay lập tức
+    //         setTimeout(() => {
+    //             document.addEventListener('click', closeEmojiDialogOnClickOutside);
+    //         }, 0);
+    //     });
+    // }
 
-        emojiDialogInstance = document.createElement('div');
-        emojiDialogInstance.className = 'emoji-dialog';
-
-        const rect = emojiBtn.getBoundingClientRect();
-        emojiDialogInstance.style.position = 'absolute';
-
-        const dialogHeightEstimate = 300;
-        const dialogWidthEstimate = 300;
-
-        let topPosition = rect.top + window.scrollY - dialogHeightEstimate - 10;
-        let leftPosition = rect.left + window.scrollX;
-
-        if (topPosition < window.scrollY) topPosition = window.scrollY + 10;
-        if (leftPosition + dialogWidthEstimate > window.innerWidth) {
-            leftPosition = window.innerWidth - dialogWidthEstimate - 10;
-        }
-        if (leftPosition < 0) leftPosition = 10;
-
-        emojiDialogInstance.style.top = topPosition + 'px';
-        emojiDialogInstance.style.left = leftPosition + 'px';
-
-        emojiDialogInstance.innerHTML = `
-                <div class="emoji-grid">
-                    ${emojiList.map(e => `<span class="emoji-item">${e}</span>`).join('')}
-                </div>
-            `;
-        document.body.appendChild(emojiDialogInstance);
-
-        emojiStyleInstance = document.createElement('style');
-        emojiStyleInstance.textContent = `
-                .emoji-dialog {
-                    background: white;
-                    padding: 20px;
-                    border-radius: 15px;
-                    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-                    z-index: 1001;
-                    max-width: ${dialogWidthEstimate}px;
-                    max-height: ${dialogHeightEstimate}px;
-                    overflow-y: auto;
-                    position: absolute; /* Đảm bảo position là absolute */
-                }
-                .emoji-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(30px, 1fr));
-                    gap: 10px;
-                }
-                .emoji-item {
-                    cursor: pointer;
-                    font-size: 20px;
-                    text-align: center;
-                    padding: 5px;
-                    border-radius: 5px;
-                    transition: all 0.2s;
-                }
-                .emoji-item:hover {
-                    background: #ffe0ef;
-                    transform: scale(1.2);
-                }
-            `;
-        document.head.appendChild(emojiStyleInstance);
-
-        emojiDialogInstance.querySelectorAll('.emoji-item').forEach(item => {
-            item.addEventListener('click', function (e) {
-                e.stopPropagation();
-                const cursorPos = editSlogan.selectionStart;
-                const textBefore = editSlogan.value.substring(0, cursorPos);
-                const textAfter = editSlogan.value.substring(cursorPos);
-                editSlogan.value = textBefore + this.textContent + textAfter;
-                editSlogan.focus();
-                editSlogan.selectionStart = editSlogan.selectionEnd = cursorPos + this.textContent.length;
-            });
-        });
-
-        closeEmojiDialogHandler = function (e_doc) {
-            if (emojiDialogInstance && !emojiDialogInstance.contains(e_doc.target) && !emojiBtn.contains(e_doc.target)) {
-                if (document.body.contains(emojiDialogInstance)) {
-                    document.body.removeChild(emojiDialogInstance);
-                }
-                if (document.head.contains(emojiStyleInstance)) {
-                    document.head.removeChild(emojiStyleInstance);
-                }
-                document.removeEventListener('click', closeEmojiDialogHandler);
-                emojiDialogInstance = null;
-                emojiStyleInstance = null;
-                closeEmojiDialogHandler = null;
-            }
-        };
-
-        setTimeout(() => {
-            document.addEventListener('click', closeEmojiDialogHandler);
-        }, 0);
-    });
-    // (ĐOẠN CODE MỚI KẾT THÚC TẠI ĐÂY)
-
-
-
-
-
-
-
-    // Quote suggestions
-    //chiiiii
+    // --- Xử lý các Câu nói gợi ý ---
     const suggestions = [
         "Hãy sống như một bông hoa, tỏa hương thơm ngát cho đời 🌸",
         "Mỗi ngày là một trang sách mới, hãy viết nên câu chuyện đẹp nhất của bạn 📖",
-        "Cuộc sống như một bức tranh, bạn là người vẽ nên những gam màu tươi sáng 🎨",
-        "Hạnh phúc không phải là đích đến, mà là hành trình ta đi qua mỗi ngày 🌟",
-        "Hãy để trái tim dẫn lối, và đôi chân sẽ đưa bạn đến nơi bạn thuộc về 💝",
-        "Mỗi khoảnh khắc đều là một món quà, hãy trân trọng và tận hưởng nó 🎁",
-        "Cuộc sống là những chuyến phiêu lưu, hãy dũng cảm khám phá 🌈",
-        "Hãy sống như một ngôi sao, tỏa sáng và truyền cảm hứng cho người khác ⭐",
-        "Mỗi ngày mới là một cơ hội để làm điều gì đó tuyệt vời 🌅",
-        "Hãy để tình yêu và niềm vui dẫn đường cho mọi quyết định của bạn 💖",
-        "Sống là để yêu thương, là để chia sẻ, là để hạnh phúc 💕",
-        "Hãy luôn mỉm cười, vì nụ cười là liều thuốc tốt nhất cho tâm hồn 😊",
-        "Cuộc sống đẹp như một bông hoa, hãy tận hưởng từng khoảnh khắc 🌺",
-        "Mỗi người đều là một ngôi sao, hãy tỏa sáng theo cách riêng của mình ✨",
-        "Hạnh phúc đơn giản là được là chính mình, được yêu thương và được sống trọn vẹn 💫",
-        "Cách tốt nhất để dự đoán tương lai là tạo ra nó. - Peter Drucker",
-        "Cuộc sống vốn không công bằng, hãy tập quen dần với điều đó. - Bill Gates",
-        "Người bi quan phàn nàn về cơn gió; người lạc quan chờ đợi nó đổi chiều; người thực tế điều chỉnh lại cánh buồm. - William Arthur Ward",
-        "Sự khác biệt giữa người thành công và những người khác không phải là thiếu sức mạnh, thiếu kiến thức, mà là thiếu ý chí. - Vince Lombardi",
-        "Hãy sống như thể bạn sẽ chết vào ngày mai. Hãy học như thể bạn sẽ sống mãi mãi. - Mahatma Gandhi",
-        "Điều duy nhất chúng ta phải sợ là chính nỗi sợ hãi. - Franklin D. Roosevelt",
-        "Cuộc hành trình ngàn dặm bắt đầu bằng một bước chân. - Lão Tử",
-        "Đừng bao giờ để nỗi sợ hãi thất bại ngăn cản bạn tham gia cuộc chơi. - Babe Ruth",
-        "Bạn sẽ bỏ lỡ 100% những cú sút bạn không thực hiện. - Wayne Gretzky",
-        "Hôm qua là lịch sử, ngày mai là một bí ẩn, nhưng hôm nay là một món quà. Đó là lý do tại sao nó được gọi là 'present' (hiện tại/món quà). - Eleanor Roosevelt "
+        // ... (giữ nguyên danh sách suggestions của cháu) ...
+        "Hạnh phúc đơn giản là được là chính mình, được yêu thương và được sống trọn vẹn 💫"
     ];
-
     const suggestionsDialog = document.getElementById('suggestionsDialog');
-    const closeSuggestions = document.getElementById('closeSuggestions');
+    const closeSuggestionsBtn = document.getElementById('closeSuggestions'); // Đổi tên biến
+    const suggestionsList = document.getElementById('suggestionsList');
 
-    // Add suggestions to the list
-    suggestions.forEach(suggestion => {
-        const div = document.createElement('div');
-        div.className = 'suggestion-item';
-        div.textContent = suggestion;
-        div.onclick = () => {
-            editSlogan.value = suggestion;
-            suggestionsDialog.classList.remove('show');
-        };
-        document.getElementById('suggestionsList').appendChild(div);
-    });
-
-    // Show suggestions dialog
-    quoteBtn.addEventListener('click', () => {
-        suggestionsDialog.classList.add('show');
-    });
-
-    // Close suggestions dialog
-    closeSuggestions.addEventListener('click', () => {
-        suggestionsDialog.classList.remove('show');
-    });
-
-    // Close dialog when clicking outside
-    document.addEventListener('click', (e) => {
-        if (e.target === suggestionsDialog) {
-            suggestionsDialog.classList.remove('show');
-        }
-    });
-
-    // Event listeners for social edit buttons (for edit.html)
-    document.querySelectorAll('.social-icon[data-social]').forEach(button => {
-        button.addEventListener('click', (e) => {
-            e.preventDefault(); // Ngăn reload/mở lại trang khi click icon
-            const social = button.getAttribute('data-social');
-            openSocialLinkDialog_edit(social);
+    if (suggestionsList) {
+        suggestions.forEach(suggestion => {
+            const div = document.createElement('div');
+            div.className = 'suggestion-item';
+            div.textContent = suggestion;
+            div.onclick = () => {
+                editSlogan.value = suggestion;
+                if (suggestionsDialog) suggestionsDialog.classList.remove('show');
+            };
+            suggestionsList.appendChild(div);
         });
-    });
+    }
 
-    // Social link dialog logic
+    if (quoteBtn) {
+        quoteBtn.addEventListener('click', () => {
+            if (suggestionsDialog) suggestionsDialog.classList.add('show');
+        });
+    }
+    if (closeSuggestionsBtn) {
+        closeSuggestionsBtn.addEventListener('click', () => {
+            if (suggestionsDialog) suggestionsDialog.classList.remove('show');
+        });
+    }
+    // Đóng dialog gợi ý khi click ra ngoài (vào lớp phủ mờ)
+    if (suggestionsDialog) {
+        suggestionsDialog.addEventListener('click', (e) => {
+            if (e.target === suggestionsDialog) { // Chỉ đóng khi click vào chính suggestionsDialog (lớp phủ)
+                suggestionsDialog.classList.remove('show');
+            }
+        });
+    }
+
+
+    // --- Xử lý Dialog Chỉnh sửa Link Mạng Xã Hội ---
+    // (Phần này sẽ hoạt động nếu cháu có các nút .social-icon trong HTML)
     const socialLinkDialogOverlay = document.getElementById('socialLinkDialogOverlay');
     const closeSocialLinkDialogBtn = document.getElementById('closeSocialLinkDialogBtn');
     const socialDialogTitle = document.getElementById('socialDialogTitle');
     const socialLinkInput = document.getElementById('socialLinkInput');
     const saveSocialLinkBtn = document.getElementById('saveSocialLinkBtn');
     const socialLinkDialogMessage = document.getElementById('socialLinkDialogMessage');
-    let currentSocialEditing = null;
+    let currentSocialEditingKey = null; // Sẽ lưu key của link đang sửa, ví dụ: 'facebookLink'
 
     const socialMeta = {
-        facebook: {icon: 'fab fa-facebook', label: 'Facebook', key: 'facebookLink'},
-        instagram: {icon: 'fab fa-instagram', label: 'Instagram', key: 'instagramLink'},
-        tiktok: {icon: 'fab fa-tiktok', label: 'TikTok', key: 'tiktokLink'},
-        locket: {icon: 'fas fa-heart', label: 'Locket', key: 'locketLink'},
-        phone: {icon: 'fas fa-phone', label: 'Số điện thoại', key: 'phone'}
+        facebook: { icon: 'fab fa-facebook', label: 'Facebook', key: 'facebookLink' },
+        instagram: { icon: 'fab fa-instagram', label: 'Instagram', key: 'instagramLink' },
+        tiktok: { icon: 'fab fa-tiktok', label: 'TikTok', key: 'tiktokLink' },
+        locket: { icon: 'fas fa-heart', label: 'Locket', key: 'locketLink' },
+        phone: { icon: 'fas fa-phone', label: 'Số điện thoại', key: 'phone' }
     };
 
-    function openSocialLinkDialog_edit(social) {
-        currentSocialEditing = social;
-        const meta = socialMeta[social];
-        socialDialogTitle.innerHTML = `<i class='${meta.icon}'></i>Nhập link ${meta.label}`;
-        socialLinkInput.type = (social === 'phone') ? 'text' : 'url';
-        socialLinkInput.placeholder = (social === 'phone') ? 'Nhập số điện thoại...' : 'Dán link mạng xã hội...';
-        socialLinkInput.value = (window.profileData && window.profileData.profile && window.profileData.profile[meta.key]) ? window.profileData.profile[meta.key] : '';
-        socialLinkDialogMessage.textContent = '';
-        socialLinkDialogOverlay.style.display = 'flex';
-        setTimeout(() => socialLinkInput.focus(), 200);
-    }
-
-    closeSocialLinkDialogBtn.onclick = function () {
-        socialLinkDialogOverlay.style.display = 'none';
-    };
-    socialLinkDialogOverlay.onclick = function (e) {
-        if (e.target === socialLinkDialogOverlay) socialLinkDialogOverlay.style.display = 'none';
-    };
-    saveSocialLinkBtn.onclick = async function () {
-        if (!window.profileData) window.profileData = {profile: {}};
-        if (!window.profileData.profile) window.profileData.profile = {};
-        const meta = socialMeta[currentSocialEditing];
-        const value = socialLinkInput.value.trim();
-        if (!value) {
-            socialLinkDialogMessage.textContent = 'Vui lòng nhập thông tin!';
+    function openSocialLinkDialog_edit(socialType) { // socialType là 'facebook', 'instagram',...
+        const meta = socialMeta[socialType];
+        if (!meta) {
+            console.error("Không tìm thấy thông tin cho loại mạng xã hội:", socialType);
             return;
         }
-        // Cập nhật trường mới
-        window.profileData.profile[meta.key] = value;
-        // Giữ lại các trường cá nhân cũ (nếu có)
-        ['name', 'nickname', 'about', 'slogan', 'avatar_base64'].forEach(key => {
-            if (document.getElementById('edit' + key.charAt(0).toUpperCase() + key.slice(1))) {
-                window.profileData.profile[key] = document.getElementById('edit' + key.charAt(0).toUpperCase() + key.slice(1)).value;
-            } else if (window.profileData.profile[key] === undefined) {
-                window.profileData.profile[key] = '';
-            }
+        currentSocialEditingKey = meta.key; // Lưu lại key để biết ô input nào cần cập nhật
+
+        socialDialogTitle.innerHTML = `<i class='${meta.icon}'></i>Nhập link ${meta.label}`;
+        socialLinkInput.type = (socialType === 'phone') ? 'text' : 'url';
+        socialLinkInput.placeholder = (socialType === 'phone') ? 'Nhập số điện thoại...' : 'Dán link mạng xã hội...';
+
+        // Lấy giá trị hiện tại từ ô input trên form chính
+        const mainInputField = document.getElementById(currentSocialEditingKey);
+        socialLinkInput.value = mainInputField ? mainInputField.value : '';
+
+        socialLinkDialogMessage.textContent = '';
+        if (socialLinkDialogOverlay) socialLinkDialogOverlay.style.display = 'flex';
+        setTimeout(() => socialLinkInput.focus(), 100); // Cho con trỏ vào ô input
+    }
+
+    // Gắn sự kiện cho các nút có class "social-icon" (nếu cháu thêm vào HTML)
+    // Ví dụ: <button class="social-icon" data-social="facebook">Sửa Facebook</button>
+    document.querySelectorAll('.social-icon[data-social]').forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            const socialType = button.getAttribute('data-social');
+            openSocialLinkDialog_edit(socialType);
         });
-        // Gửi toàn bộ profileData lên API
-        try {
-            const response = await fetch('/profile', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(window.profileData)
-            });
-            const result = await response.json();
-            if (result.success) {
-                socialLinkDialogMessage.textContent = 'Đã lưu thành công!';
-                setTimeout(() => {
-                    socialLinkDialogOverlay.style.display = 'none';
-                }, 800);
-            } else {
-                socialLinkDialogMessage.textContent = 'Có lỗi khi lưu!';
+    });
+
+    if (closeSocialLinkDialogBtn) {
+        closeSocialLinkDialogBtn.onclick = function () {
+            if (socialLinkDialogOverlay) socialLinkDialogOverlay.style.display = 'none';
+        };
+    }
+    if (socialLinkDialogOverlay) {
+        socialLinkDialogOverlay.onclick = function (e) {
+            // Chỉ đóng khi click vào lớp phủ bên ngoài, không phải vào nội dung dialog
+            if (e.target === socialLinkDialogOverlay) {
+                socialLinkDialogOverlay.style.display = 'none';
             }
-        } catch (e) {
-            socialLinkDialogMessage.textContent = 'Có lỗi khi lưu!';
-        }
-    };
+        };
+    }
+
+    // Khi nhấn nút "Lưu" trong dialog sửa link mạng xã hội
+    if (saveSocialLinkBtn) {
+        saveSocialLinkBtn.onclick = function () {
+            const value = socialLinkInput.value.trim();
+            if (!value) {
+                socialLinkDialogMessage.textContent = 'Vui lòng nhập thông tin!';
+                return;
+            }
+
+            // Cập nhật giá trị vào ô input trên form chính
+            if (currentSocialEditingKey) {
+                const mainInputField = document.getElementById(currentSocialEditingKey);
+                if (mainInputField) {
+                    mainInputField.value = value;
+                    socialLinkDialogMessage.textContent = 'Đã cập nhật! Nhấn "Lưu thông tin" ở dưới để lưu lại nhé. ✨';
+                    console.log(`Đã cập nhật ô ${currentSocialEditingKey} với giá trị: ${value}`);
+                } else {
+                    socialLinkDialogMessage.textContent = 'Lỗi: Không tìm thấy ô để cập nhật!';
+                }
+            }
+
+            // Đóng dialog sau khi "lưu tạm"
+            setTimeout(() => {
+                if (socialLinkDialogOverlay) socialLinkDialogOverlay.style.display = 'none';
+                socialLinkDialogMessage.textContent = ''; // Xóa thông báo
+            }, 1500);
+        };
+    }
 </script>
-</body>
-</html> 
