@@ -40,6 +40,7 @@ def get_profile():
     profile = db.get_profile()
     return {"profile": profile}
 
+
 # Thêm cột avatar_base64 vào bảng profile
 try:
     with engine.connect() as conn:
